@@ -55,7 +55,7 @@
     <string name="total_payment">Total Payment</string>
     <string name="partial_payment">Partial Payment</string>
     <string name="repayment_date">Repayment date :</string>
-    <string name="you_will_give">You will get</string>
+    <string name="you_will_give">You will pay</string>
     <string name="you_will_get">You will get</string>
     <string name="improve_score">Improve Score</string>
     <string name="amount_paid">Amount Paid</string>
@@ -64,4 +64,12 @@
     <string name="no_network_connected">Internet not connected!</string>
     <string name="error_empty_mobile">Please enter mobile number</string>
     <string name="error_valid_mobile">Please enter valid mobile number</string>
+    <string name="txn_saved">Transaction successfully saved!</string>
+    <string name="notify_label">"Are you want to notify "</string>
+    <string name="refer_a_friend">Refer a friend</string>
+    <string name="share_text">Hey there!! Download the Credbizz app and make payments everywhere on credit.</string>
+    <string name="close">Close</string>
+    <string name="make_payment">Make timely payments</string>
+    <string name="larger_txn">Larger the transaction amount more the impact on score</string>
+    <string name="keep_clean">Keep your past records clean</string>
 </resources>

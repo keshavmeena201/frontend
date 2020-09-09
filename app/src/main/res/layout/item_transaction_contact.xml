@@ -46,7 +46,8 @@
                         android:fontFamily="@font/montserrat_regular"
                         android:textColor="@color/white"
                         android:textSize="@dimen/_11sdp"
-                        android:layout_toEndOf="@+id/tx_contact_name"/>
+                        android:layout_toEndOf="@+id/tx_contact_name"
+                        android:visibility="gone"/>
 
 
 

@@ -32,6 +32,7 @@ class ContactsAdapter(val context: Context, val contactsModels : ArrayList<Conta
             contactsViewHolder.txContactNumber.text = contactsModels[position].contactNumber
             //contactsViewHolder.txContactCreditScore.text = contactsModels[position].contactCreditScore
 
+
             if (contactsModels[position].isCreditBuzzUser){
                 contactsViewHolder.ivAppIcon.visibility = View.VISIBLE
                //contactsViewHolder.txContactCreditScore.visibility = View.VISIBLE

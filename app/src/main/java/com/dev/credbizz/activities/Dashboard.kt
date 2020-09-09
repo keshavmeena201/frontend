@@ -38,6 +38,8 @@ import com.dev.credbizz.extras.*
 import com.dev.credbizz.models.ContactModel
 import com.dev.credbizz.models.ProfileDataModel
 import com.dev.credbizz.models.TransactionModel
+import com.google.firebase.dynamiclinks.DynamicLink
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
@@ -88,9 +90,11 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
     // ALERT DIALOG
     lateinit var alertDialog: AlertDialog
+    lateinit var alertImproveScoreDialog : AlertDialog
 
     // DIALOG BUILDER
     lateinit var dialog: AlertDialog.Builder
+    lateinit var improveScoreDialog : AlertDialog.Builder
 
     // ADAPTER
     lateinit var transactionContactsAdapter : TransactionContactsAdapter
@@ -157,7 +161,15 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
         //}
 
-        // INIT ADAPTER
+        // SHARE CLICK
+        tx_refer_friend.setOnClickListener {
+            shareApp()
+        }
+
+        // IMPROVE SCORE CLICK
+        tx_improve_score.setOnClickListener {
+            improveScore()
+        }
 
         // ADD PAYMENT CLICK
         btn_add_payment.setOnClickListener {
@@ -347,8 +359,58 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         }
     }
 
+    // SHARE APP
+    fun shareApp() {
+        var shortLink: String = ""
+        FirebaseDynamicLinks.getInstance().createDynamicLink()
+            .setLink(Uri.parse(Keys.dynamicLinkPageUrl))
+            .setDomainUriPrefix(Keys.dynamicLinkPageTransactionLink)
+            .setAndroidParameters(
+                DynamicLink.AndroidParameters.Builder(Keys.applicationId)
+                    .setMinimumVersion(1)
+                    .build()
+            )
+            .setIosParameters(
+                DynamicLink.IosParameters.Builder("")
+                    .setAppStoreId("")
+                    .setMinimumVersion("")
+                    .build()
+            )
+            .buildShortDynamicLink()
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    shortLink = task.result.shortLink.toString()
+                    val intent = Intent()
+                    intent.action = Intent.ACTION_SEND
+                    intent.type = "text/plain"
+                    intent.putExtra(Intent.EXTRA_TEXT, resources.getString(R.string.share_text) + " " +shortLink )
+                    startActivity(Intent.createChooser(intent, "Share to"))
+                }
+            }
 
 
+    }
+
+    // IMPROVE SCORE METHOD
+    fun improveScore(){
+
+        improveScoreDialog = AlertDialog.Builder(context)
+        val dialogView: View = LayoutInflater.from(context).inflate(R.layout.improve_score_popup, null)
+        improveScoreDialog.setView(dialogView)
+        improveScoreDialog.setCancelable(true)
+
+        val btnClose : Button = dialogView.findViewById(R.id.btn_close)
+
+        btnClose.setOnClickListener {
+            alertImproveScoreDialog.dismiss()
+        }
+
+        alertImproveScoreDialog = improveScoreDialog.create()
+        alertImproveScoreDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        alertImproveScoreDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        alertImproveScoreDialog.window!!.attributes.windowAnimations = R.style.SlidingDialogAnimation
+        alertImproveScoreDialog.show()
+    }
 
     override fun onSettleUpSelect(pos: Int) {
         showAlertCustom(context, transactionList1[pos])

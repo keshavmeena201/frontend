@@ -1,6 +1,10 @@
 package com.dev.credbizz.adapters
 
 import android.content.Context
+import android.text.Html
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ImageSpan
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,12 +16,16 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.dev.credbizz.R
 import com.dev.credbizz.dbHelper.Constants
+import com.dev.credbizz.extras.Keys
 import com.dev.credbizz.extras.SessionManager
-import com.dev.credbizz.models.ContactModel
 import com.dev.credbizz.models.TransactionModel
 
 
-class TransactionContactsAdapter(val context: Context, val contactsModels : ArrayList<TransactionModel>, var onContactSelectListener : OnSettleUpSelectListener) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class TransactionContactsAdapter(
+    val context: Context,
+    val contactsModels: ArrayList<TransactionModel>,
+    var onContactSelectListener: OnSettleUpSelectListener
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -33,11 +41,11 @@ class TransactionContactsAdapter(val context: Context, val contactsModels : Arra
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         val constant = Constants()
         var sessionManager = SessionManager.getInstance(context)!!
-        Log.e("lolerror","contactsModels[position].fromMobileNumber")
+        Log.e("lolerror", "contactsModels[position].fromMobileNumber")
         if (holder is contactListViewHolder){
 
             val contactssViewHolder = holder
-            contactssViewHolder.txContactAlpha.text = sessionManager.orgName
+
             contactssViewHolder.txContactName.text = contactsModels[position].fromMobileNumber
             //contactssViewHolder.txContactNumber.text = contactsModels[position].contactNumber
             contactssViewHolder.txContactCreditScore.text = "600"
@@ -49,14 +57,35 @@ class TransactionContactsAdapter(val context: Context, val contactsModels : Arra
                 contactssViewHolder.ivAppIcon.visibility = View.GONE
             }
 
-            if (contactsModels[position].fromMobileNumber == constant.getMobileNum()){
-                contactssViewHolder.txContactTxn.setTextColor(ContextCompat.getColor(context, R.color.red))
-                contactssViewHolder.txContactTxn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_give, 0, 0, 0)
-                contactssViewHolder.txContactTxn.text = contactsModels[position].principleAmount.toString()
-                contactssViewHolder.txContactName.text = contactsModels[position].fromMobileNumber + " gave to "
+            if (contactsModels[position].fromMobileNumber == sessionManager.mobileNumber){
+                contactssViewHolder.txContactAlpha.text = sessionManager.mobileNumber.toString().substring(0, 1)
+                var help = contactsModels[position].principleAmount.toString()
+                help = help.replace(contactsModels[position].principleAmount.toString(), "<font color='#D50000'>" + Keys.rupeeSymbol + contactsModels[position].principleAmount.toString() + "</font>")
+                val preString = "Pay " +  Html.fromHtml(help) +  " to " +contactsModels[position].fromMobileNumber
+                val ss = SpannableString(preString)
+                val d = ContextCompat.getDrawable(context, R.drawable.ic_give)
+                val span = ImageSpan(d!!, ImageSpan.ALIGN_BASELINE)
+                ss.setSpan(span, 0, preString.length, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
+                contactssViewHolder.txContactName.text = ss.toString()
             } else {
-                contactssViewHolder.txContactTxn.setTextColor(ContextCompat.getColor(context, R.color.green))
-                contactssViewHolder.txContactTxn.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_get, 0, 0, 0)
+                contactssViewHolder.txContactAlpha.text = contactsModels[position].fromMobileNumber.toString().substring(0, 1)
+                var help = contactsModels[position].principleAmount.toString()
+                help = help.replace(
+                    contactsModels[position].principleAmount.toString(),
+                    "<font color='#43A047'>" + Keys.rupeeSymbol + contactsModels[position].principleAmount.toString() + "</font>"
+                )
+                contactssViewHolder.txContactTxn.setTextColor(
+                    ContextCompat.getColor(
+                        context,
+                        R.color.green
+                    )
+                )
+                contactssViewHolder.txContactTxn.setCompoundDrawablesWithIntrinsicBounds(
+                    R.drawable.ic_get,
+                    0,
+                    0,
+                    0
+                )
                 contactssViewHolder.txContactTxn.text = contactsModels[position].principleAmount.toString()
                 contactssViewHolder.txContactName.text = contactsModels[position].fromMobileNumber + " will give you "
             }
@@ -68,7 +97,7 @@ class TransactionContactsAdapter(val context: Context, val contactsModels : Arra
 
     }
 
-    inner class contactListViewHolder(itemView : View) : RecyclerView.ViewHolder(itemView){
+    inner class contactListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
         var txContactAlpha : TextView = itemView.findViewById(R.id.tx_contact_alpha)
         var txContactName : TextView = itemView.findViewById(R.id.tx_contact_name)
         var txContactNumber : TextView = itemView.findViewById(R.id.tx_contact_number)

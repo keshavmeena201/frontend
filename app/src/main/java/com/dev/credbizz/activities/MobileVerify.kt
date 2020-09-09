@@ -35,6 +35,7 @@ import com.google.android.gms.auth.api.phone.SmsRetriever
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.android.synthetic.main.activity_mobile_verify.*
+import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Response
@@ -137,7 +138,7 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
                 //constant.setfirst()
                 sessionManager.mobileNumber = ed_mobile_number.text.toString()
                 sessionManager.isUserFirstTime = true
-                showAlertCustom(context)
+
             }
 
 
@@ -406,15 +407,17 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
                 Log.e("reqObj", reqObj.toString())
 
                 // API CALL
-                apis.getOtp(reqObj).enqueue(object : retrofit2.Callback<String>{
+                apis.getOtp(reqObj).enqueue(object : retrofit2.Callback<ResponseBody>{
 
                     override fun onResponse(
-                        call: Call<String>,
-                        response: Response<String>
+                        call: Call<ResponseBody>,
+                        response: Response<ResponseBody>
                     ) {
                         dialogLoader.hideProgressDialog()
+
+                        showAlertCustom(context)
                        // showAlertCustom(context)
-                        try {
+                      /*  try {
                             Log.e("getOtpResp", response.toString())
 
                             if (response.code() == 200) {
@@ -442,10 +445,10 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
 
                         } catch (e : Exception){
                             e.printStackTrace()
-                        }
+                        }*/
                     }
 
-                    override fun onFailure(call: Call<String>, t: Throwable) {
+                    override fun onFailure(call: Call<ResponseBody>, t: Throwable) {
                         Log.e("getOtpResp", t.toString())
                         dialogLoader.hideProgressDialog()
                       //  showAlertCustom(context)
@@ -484,12 +487,10 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
 
                             if (response.code() == 200) {
                                 sessionManager.previousLoginTime = System.currentTimeMillis()
-                                sessionManager.isUserFirstTime = false
                                 sessionManager.mobileNumber = ed_mobile_number.text.toString()
                                 ivVerified.visibility = View.VISIBLE
                                 txVerificationMsg.visibility = View.VISIBLE
-                                sessionManager.previousLoginTime = System.currentTimeMillis()
-                                sessionManager.isUserFirstTime = false
+                                //sessionManager.isUserFirstTime = false
                                 redirectToNextScreen()
 
                                 val responseString = response.body().toString()

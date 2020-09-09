@@ -16,7 +16,7 @@ import java.security.Key
 interface RetrofitService {
 
     @POST(Keys.ServiceGetOtp)
-    fun getOtp(@Body jsonObject: JsonObject): Call<String>
+    fun getOtp(@Body jsonObject: JsonObject): Call<ResponseBody>
 
     @GET(Keys.ServiceVerifyOtp + "{otp}/{mobileNum}" )
     fun verifyOtp(@Path("otp") otp: String, @Path("mobileNum") mobileNum: String) : Call<ResponseDao>
@@ -28,7 +28,7 @@ interface RetrofitService {
     fun updateProfile(@Body jsonObject: JsonObject): Call<String>
 
     @POST(Keys.addTransaction)
-    fun addtransaction(@Body jsonObject: JsonObject): Call<String>
+    fun addtransaction(@Body jsonObject: JsonObject): Call<JsonObject>
 
     @GET(Keys.getProfileScore+"{mobileNumber}")
     fun getProfileScore(@Path("mobileNumber") mobileNumber: String) : Call<String>
@@ -38,5 +38,8 @@ interface RetrofitService {
 
     @POST(Keys.settleUp )
     fun settleUp(@Body jsonObject: TransactionModel) : Call<String>
+
+    @GET(Keys.getAllProfiles)
+    fun getAllProfiles() : Call<List<ProfileDataModel>>
 
 }

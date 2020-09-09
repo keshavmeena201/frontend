@@ -72,7 +72,7 @@
             android:id="@+id/tx_payment_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#FFEE58"
+            android:textColor="@color/green"
             android:fontFamily="@font/montserrat_regular"
             android:gravity="start"
             android:textSize="@dimen/_13sdp"
@@ -289,7 +289,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/save"
-            android:background="@drawable/red_corner_bg"
+            android:background="@drawable/green_corner_bg"
             android:textColor="@color/white"
             android:fontFamily="@font/montserrat_regular"
             android:layout_gravity="center"
@@ -298,6 +298,9 @@
             android:layout_marginStart="@dimen/_16sdp"
             android:layout_marginEnd="@dimen/_16sdp"
             android:padding="@dimen/_12sdp" />
+
+        <include layout="@layout/txn_saved"
+            android:visibility="gone"/>
 
 
     </LinearLayout>

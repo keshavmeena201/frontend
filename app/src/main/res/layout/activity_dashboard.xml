@@ -25,23 +25,22 @@
             <TextView
                 android:id="@+id/tx_company_name"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/org_name"
+                android:layout_height="40dp"
+                android:text="Name"
+                android:gravity="center"
                 android:fontFamily="@font/montserrat_regular"
-                android:textColor="@color/text_color"
-                android:background="@drawable/white_bg"
+                android:textColor="@color/white"
+                android:background="@drawable/blue_btn_bg"
                 android:textSize="@dimen/_10sdp"
-                android:drawablePadding="@dimen/_4sdp"
-                android:padding="@dimen/_6sdp"
+                android:lines="1"
+                android:ellipsize="end"
+                android:paddingStart="@dimen/_8sdp"
+                android:paddingEnd="@dimen/_8sdp"
+                android:paddingTop="@dimen/_6sdp"
+                android:paddingBottom="@dimen/_6sdp"
                 android:layout_alignParentStart="true"
                 />
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_share"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@+id/tx_improve_score"/>
 
             <TextView
                 android:id="@+id/tx_improve_score"
@@ -49,10 +48,13 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="end"
                 android:textColor="@color/white"
-                android:textSize="@dimen/_10sdp"
+                android:text="@string/improve_score"
                 android:drawablePadding="@dimen/_4sdp"
-                android:drawableEnd="@drawable/ic_info"
+                android:drawableLeft="@drawable/ic_info"
+                android:layout_marginStart="@dimen/_4sdp"
                 android:padding="@dimen/_6sdp"
+                android:gravity="center"
+                android:fontFamily="@font/montserrat_regular"
                 android:layout_alignParentEnd="true"
                 />
 
@@ -65,7 +67,7 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_gravity="center"
-            android:layout_marginTop="-25dp"
+            android:layout_marginTop="-16dp"
             android:layout_centerHorizontal="true">
             
 
@@ -155,6 +157,24 @@
             android:layout_marginTop="@dimen/_6sdp"
             android:layout_gravity="center"/>
 
+
+
+        <TextView
+            android:id="@+id/tx_refer_friend"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_share"
+            android:text="@string/refer_a_friend"
+            android:textColor="@color/white"
+            android:drawableStart="@drawable/ic_share"
+            android:drawablePadding="@dimen/_4sdp"
+            android:layout_marginStart="@dimen/_4sdp"
+            android:padding="@dimen/_6sdp"
+            android:gravity="center"
+            android:layout_gravity="end"
+            android:fontFamily="@font/montserrat_regular"
+            android:layout_marginEnd="@dimen/_4sdp"
+            android:layout_marginRight="@dimen/_4sdp"/>
 
 
     </LinearLayout>

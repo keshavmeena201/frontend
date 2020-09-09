@@ -16,4 +16,5 @@
     <color name="logo_bg">#2F302F</color>
     <color name="light_green">#9CCC65</color>
     <color name="yellow">#F9A825</color>
+    <color name="colorTransparent">#00000000</color>
 </resources>

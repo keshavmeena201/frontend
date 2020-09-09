@@ -8,6 +8,9 @@ interface Keys {
         const val BASEURL : String = "https://upbeat-palace-288813.el.r.appspot.com/"
         const val authorization : String = "authorization"
         const val tbl_contacts : String = "tbl_contacts"
+        const val dynamicLinkPageUrl : String = "https://credbizz.com/"
+        const val dynamicLinkPageTransactionLink : String = "https://credbizz.page.link"
+        const val dynamicLinkPageShareLink : String = "https://credbizz.page.link"
 
         // SERVICE URLS
         const val ServiceGetOtp = "sendOtp"
@@ -15,12 +18,14 @@ interface Keys {
 
         const val profileupdate = "profileUpdate"
         const val addTransaction = "addBill"
+        const val applicationId = "123456789"
 
         //transaction URLS
         const val getTransactions = "getallTransactions/"
         const val getProfileScore = "getScore/"
         const val getProfile = "getProfile/"
         const val settleUp = "settleUp"
+        const val getAllProfiles = "getAllProfiles"
 
         // REQUEST PARAMETERS
         const val phoneNumber = "phoneNumber"

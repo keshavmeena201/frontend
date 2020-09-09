@@ -15,6 +15,8 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextUtils
@@ -40,11 +42,17 @@ import com.dev.credbizz.extras.*
 import com.dev.credbizz.extras.Keys.Companion.REQUEST_CAMERA
 import com.dev.credbizz.extras.Keys.Companion.SELECT_FILE
 import com.dev.credbizz.models.ContactModel
+import com.dev.credbizz.models.ProfileDataModel
+import com.google.android.gms.tasks.OnCompleteListener
+import com.google.android.gms.tasks.Task
+import com.google.firebase.dynamiclinks.DynamicLink
+import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
+import com.google.firebase.dynamiclinks.ShortDynamicLink
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.android.synthetic.main.activity_add_contact.*
-import kotlinx.android.synthetic.main.activity_mobile_verify.*
 import kotlinx.android.synthetic.main.custom_toolbar.*
+import kotlinx.android.synthetic.main.notify_popup.*
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -61,6 +69,12 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
     // STRING
     private var selectedDob: String = ""
     var selectedImagePath : String = ""
+    var serverDateString : String = ""
+    var selectedContact : String = ""
+    var selectedNumber : String = ""
+    var selectedText : String = "You Gave"
+    var savedAmount = ""
+    var selectedDate = ""
 
     // SESSION MANAGER
     lateinit var sessionManager: SessionManager
@@ -68,15 +82,18 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
     // INTEGER
     var request: Int = 0
     var contactLoaderId : Int = 1
+    var type : Int = 0
 
-    // DATE
-    lateinit var serverDateString : Date
+
+    // BOOLEAN
+    var isSearch : Boolean = false
 
     // ADAPTER
     lateinit var contactsAdapter: ContactsAdapter
 
     // ARRAY LIST
     var contactList : ArrayList<ContactModel> = ArrayList()
+    var filteredArrayList : ArrayList<ContactModel> = ArrayList()
     var lstData: ArrayList<Array<String>>? = ArrayList()
     var lst : ArrayList<String> = ArrayList()
 
@@ -123,6 +140,9 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
 
     // DIALOG LOADER
     lateinit var dialogLoader: DialogLoader
+
+    // LINEAR LAYOUT
+    lateinit var llTxnSaved : LinearLayout
 
     // CONTEXT
     internal lateinit var context: Context
@@ -180,21 +200,24 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                 if (p0.toString().length > 1) {
-                    val filteredArrayList = filter(contactList, p0.toString())
+                    filteredArrayList.clear()
+                    filteredArrayList = filter(contactList, p0.toString())
                     if (filteredArrayList.size > 0) {
+                        isSearch = true
                         rec_contacts_view.visibility = View.VISIBLE
                         tx_empty.visibility = View.GONE
                         contactsAdapter =
                             ContactsAdapter(context, filteredArrayList, this@AddContact)
                         rec_contacts_view.adapter = contactsAdapter
                     } else {
+                        isSearch = false
                         rec_contacts_view.visibility = View.VISIBLE
                         tx_empty.visibility = View.GONE
                         rec_contacts_view.visibility = View.GONE
                         tx_empty.visibility = View.VISIBLE
                     }
                 } else {
-
+                    isSearch = false
                     contactsAdapter = ContactsAdapter(context, contactList, this@AddContact)
                     rec_contacts_view.adapter = contactsAdapter
                 }
@@ -210,6 +233,32 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
             getContactList()
         } else {
             getContactList()
+        }
+
+        getCredUsers()
+
+        // NOTIFY POPUP CLICK EVENTS
+        iv_close.setOnClickListener {
+            ll_notify_popup.visibility = View.GONE
+        }
+
+        tx_send_message.setOnClickListener {
+
+            if (type == 0) {
+                createDynamicLink(0, 1)
+            } else if (type == 1) {
+                createDynamicLink(1, 1)
+            }
+
+        }
+
+        tx_send_whatsapp.setOnClickListener {
+            if (type == 0) {
+                createDynamicLink(0, 2)
+            } else if (type == 1) {
+                createDynamicLink(1, 2)
+            }
+
         }
     }
 
@@ -270,7 +319,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                 // START FETCHING CONTACT LIST USING LOADER
                 LoaderManager.getInstance(this).initLoader(contactLoaderId, null, this)
             }
-        } catch (e : Exception){
+        } catch (e: Exception){
             e.printStackTrace()
         }
     }
@@ -323,7 +372,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                     lst.add(data[i].isCreditBuzzUser.toString())
                     lst.add(data[i].isContactSelected.toString())
                     lst.add(data[i].transactionType.toString())
-                    lt.insertData(Keys.tbl_contacts, Keys.id, lst, LoadTables.saveContacts());
+                    lt.insertData(Keys.tbl_contacts, Keys.id, lst, LoadTables.saveContacts())
                 }
 
                 contactList.clear()
@@ -359,7 +408,15 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
     }
 
     override fun onContactSelect(pos: Int) {
-        showAlertCustom(context, contactList[pos].contactName,contactList[pos].contactNumber)
+        if (isSearch){
+            showAlertCustom(
+                context,
+                filteredArrayList[pos].contactName,
+                filteredArrayList[pos].contactNumber
+            )
+        } else {
+            showAlertCustom(context, contactList[pos].contactName, contactList[pos].contactNumber)
+        }
     }
 
     // SEARCH USER
@@ -386,7 +443,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
 
     // SHOW PAYMENT POPUP
     @SuppressLint("SetTextI18n")
-    fun showAlertCustom(context: Context, contactName: String, contactNumber : String) {
+    fun showAlertCustom(context: Context, contactName: String, contactNumber: String) {
 
         dialog = AlertDialog.Builder(context)
         val dialogView: View = LayoutInflater.from(context).inflate(
@@ -396,7 +453,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         dialog.setView(dialogView)
         dialog.setCancelable(true)
 
-        val type : Int = 0
+
 
         edAmount = dialogView.findViewById(R.id.ed_amount)
 
@@ -413,54 +470,59 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         rgTransactionType = dialogView.findViewById(R.id.rg_action)
 
         btnSave = dialogView.findViewById(R.id.btn_save)
+        llTxnSaved = dialogView.findViewById(R.id.ll_txn_saved)
 
-        val radioButtonID = rgTransactionType.checkedRadioButtonId
-        val radioButton = rgTransactionType.findViewById(radioButtonID) as RadioButton
-        val selectedText = radioButton.text as String
 
-        txAmountHeader.text = "You gave " + Keys.rupeeSymbol + "0 to " + contactName
-        txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.green))
-        edAmount.setTextColor(ContextCompat.getColor(context, R.color.green))
-        txAmountDate.setTextColor(ContextCompat.getColor(context, R.color.green))
-        txRupeeSymbol.setTextColor(ContextCompat.getColor(context, R.color.green))
-        txAmountBills.setTextColor(ContextCompat.getColor(context, R.color.green))
-        Utils.setTextViewDrawableColor(context, txAmountDate, R.color.green)
-        Utils.setTextViewDrawableColor(context, txAmountBills, R.color.green)
-        btnSave.setBackgroundResource(R.drawable.green_corner_bg)
+
+
 
         txTxnHeader.text = "Transaction with " + contactName
 
-        // GENDER SELECT
         rgTransactionType.setOnCheckedChangeListener { radioGroup, i ->
             Utils.hideSoftKeyboard(this@AddContact)
-            if (i == R.id.rb_give) {
-                type == 0
-                txAmountHeader.text = "You gave " + Keys.rupeeSymbol + " " + edAmount.text.toString().trim() + " to " + contactName
-                txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.green))
-                edAmount.setTextColor(ContextCompat.getColor(context, R.color.green))
-                txAmountDate.setTextColor(ContextCompat.getColor(context, R.color.green))
-                txRupeeSymbol.setTextColor(ContextCompat.getColor(context, R.color.green))
-                txAmountBills.setTextColor(ContextCompat.getColor(context, R.color.green))
-                Utils.setTextViewDrawableColor(context, txAmountDate, R.color.green)
-                Utils.setTextViewDrawableColor(context, txAmountBills, R.color.green)
-                btnSave.setBackgroundResource(R.drawable.green_corner_bg)
-            } else if (i == R.id.rb_got) {
-                type == 1
-                txAmountHeader.text = "You got " + Keys.rupeeSymbol + " " + edAmount.text.toString().trim() + " from " + contactName
-                txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.yellow))
-                edAmount.setTextColor(ContextCompat.getColor(context, R.color.yellow))
-                txAmountDate.setTextColor(ContextCompat.getColor(context, R.color.yellow))
-                txRupeeSymbol.setTextColor(ContextCompat.getColor(context, R.color.yellow))
-                txAmountBills.setTextColor(ContextCompat.getColor(context, R.color.yellow))
-                Utils.setTextViewDrawableColor(context, txAmountDate, R.color.yellow)
-                Utils.setTextViewDrawableColor(context, txAmountBills, R.color.yellow)
-                btnSave.setBackgroundResource(R.drawable.red_corner_bg)
+            when(i){
+                R.id.rb_give -> {
+                    selectedText = resources.getString(R.string.you_gave)
+                    txAmountHeader.text =
+                        "You gave " + Keys.rupeeSymbol + " " + edAmount.text.toString()
+                            .trim() + " to " + contactName
+                    txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.green))
+                    edAmount.setTextColor(ContextCompat.getColor(context, R.color.green))
+                    txAmountDate.setTextColor(ContextCompat.getColor(context, R.color.green))
+                    txRupeeSymbol.setTextColor(ContextCompat.getColor(context, R.color.green))
+                    txAmountBills.setTextColor(ContextCompat.getColor(context, R.color.green))
+                    Utils.setTextViewDrawableColor(context, txAmountDate, R.color.green)
+                    Utils.setTextViewDrawableColor(context, txAmountBills, R.color.green)
+                    btnSave.setBackgroundResource(R.drawable.green_corner_bg)
+                    return@setOnCheckedChangeListener
+                }
+
+                R.id.rb_got -> {
+                    selectedText = resources.getString(R.string.you_got)
+                    txAmountHeader.text =
+                        "You got " + Keys.rupeeSymbol + " " + edAmount.text.toString()
+                            .trim() + " from " + contactName
+                    txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                    edAmount.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                    txAmountDate.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                    txRupeeSymbol.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                    txAmountBills.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                    Utils.setTextViewDrawableColor(context, txAmountDate, R.color.yellow)
+                    Utils.setTextViewDrawableColor(context, txAmountBills, R.color.yellow)
+                    btnSave.setBackgroundResource(R.drawable.red_corner_bg)
+                    return@setOnCheckedChangeListener
+                }
             }
+
         }
+
 
         txAmountHeader.text = "You gave " + Keys.rupeeSymbol + "0 to " + contactName
 
         val dateString: String = SimpleDateFormat("dd MMM yy").format(Date())
+        val serverDate: String =
+            SimpleDateFormat("yyyy-MM-dd").format(Date())
+        serverDateString = serverDate
         txAmountDate.text = dateString
 
         cbNotify.text = resources.getString(R.string.notify_text) + " " + contactName
@@ -481,12 +543,13 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
             }
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (type == 0) {
-                    txAmountHeader.text =
-                        "You gave " + Keys.rupeeSymbol + " " + p0.toString() + " to " + contactName
-                } else {
+                if (selectedText == resources.getString(R.string.you_gave)) {
+                    txAmountHeader.text = "You gave " + Keys.rupeeSymbol + " " + p0.toString() + " to " + contactName
+                    txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.green))
+                } else if (selectedText == resources.getString(R.string.you_got)) {
                     txAmountHeader.text =
                         "You got " + Keys.rupeeSymbol + " " + p0.toString() + " from " + contactName
+                    txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.yellow))
                 }
             }
 
@@ -507,25 +570,31 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         btnSave.setOnClickListener {
             val constant = Constants()
             //addtransaction
+            selectedContact = contactName
+            selectedNumber = contactNumber
             val reqObj = JsonObject()
-            if (type == 0){
-                reqObj.addProperty("fromMobileNumber", sessionManager.mobileNumber)
-                reqObj.addProperty("toMobileNumber", contactNumber)
-            }else{
+            var txn : Int = 0;
+            if (selectedText == resources.getString(R.string.you_gave)) {
                 reqObj.addProperty("toMobileNumber", sessionManager.mobileNumber)
                 reqObj.addProperty("fromMobileNumber", contactNumber)
+                type = 0
+            } else{
+                reqObj.addProperty("fromMobileNumber", sessionManager.mobileNumber)
+                reqObj.addProperty("toMobileNumber", contactNumber)
+                type = 1
             }
-            //reqObj.addProperty("transactionDate", serverDateString.toString())
+            reqObj.addProperty("nextDate", serverDateString.toString())
 
             var formatValue = edAmount.text.toString().trim()
             if (formatValue.contains(",")){
-                formatValue = formatValue.replace("," , "")
+                formatValue = formatValue.replace(",", "")
             } else {
                 formatValue = edAmount.text.toString().trim()
             }
-            reqObj.addProperty("principleAmount",formatValue)
-            addTransaction(reqObj)
-            alertDialog.dismiss()
+            reqObj.addProperty("principleAmount", formatValue)
+            addTransaction(reqObj, txn)
+
+
         }
 
 
@@ -536,7 +605,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         alertDialog.show()
     }
 
-    private fun addTransaction(jsonObject: JsonObject){
+    private fun addTransaction(jsonObject: JsonObject, txnType : Int){
         try {
             if (Utils.isNetworkAvailable(this)){
                 dialogLoader.showProgressDialog()
@@ -548,15 +617,21 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                 Log.e("reqObj", reqObj.toString())
 
                 // API CALL
-                apis.addtransaction(reqObj).enqueue(object : retrofit2.Callback<String>{
+                apis.addtransaction(reqObj).enqueue(object : retrofit2.Callback<JsonObject> {
 
                     override fun onResponse(
-                        call: Call<String>,
-                        response: Response<String>
+                        call: Call<JsonObject>,
+                        response: Response<JsonObject>
                     ) {
                         dialogLoader.hideProgressDialog()
                         try {
+                            llTxnSaved.visibility = View.VISIBLE
 
+                            tx_notify_user.text = resources.getString(R.string.notify_label) + " " + selectedContact + "?"
+                            Handler(Looper.myLooper()!!).postDelayed(Runnable {
+                                alertDialog.dismiss()
+                                ll_notify_popup.visibility = View.VISIBLE
+                            }, 1000)
                             if (response.code() == 200) {
 
                                 val responseString = response.body().toString()
@@ -571,21 +646,21 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                                     val adapter = gson.getAdapter(JsonObject::class.java)
                                     if (response.errorBody() != null) {
                                         val registerResponse = adapter.fromJson(responseError)
-                                        if (registerResponse.has(Keys.error)){
+                                        if (registerResponse.has(Keys.error)) {
                                             // Utils.showAlertCustom(context, registerResponse.get(Keys.error).asString)
                                         }
                                     }
-                                } catch (e : Exception) {
+                                } catch (e: Exception) {
                                     e.printStackTrace()
                                 }
                             }
 
-                        } catch (e : Exception){
+                        } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
 
-                    override fun onFailure(call: Call<String>, t: Throwable) {
+                    override fun onFailure(call: Call<JsonObject>, t: Throwable) {
                         dialogLoader.hideProgressDialog()
                         t.printStackTrace()
                     }
@@ -593,7 +668,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
             } else {
                 Utils.showAlertCustom(context, resources.getString(R.string.no_network_connected))
             }
-        } catch (e : Exception){
+        } catch (e: Exception){
             e.printStackTrace()
         }
 
@@ -608,13 +683,15 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
             val month = c[Calendar.MONTH]
             val day = c[Calendar.DAY_OF_MONTH]
             val datePicker: DatePickerDialog = DatePickerDialog(
-                context,R.style.DatePickerTheme,
+                context, R.style.DatePickerTheme,
                 DatePickerDialog.OnDateSetListener { p0, year, month, day ->
                     val newDate = Calendar.getInstance()
                     newDate.set(year, month, day)
                     val dateString: String =
                         SimpleDateFormat("dd MMM yy").format(Date(newDate.timeInMillis))
-                   serverDateString = Date(newDate.timeInMillis)
+                    val serverDate: String =
+                        SimpleDateFormat("yyyy-MM-dd").format(Date(newDate.timeInMillis))
+                    serverDateString = serverDate
                     txAmountDate.text = dateString
                 }, year, month, day
             )
@@ -661,9 +738,6 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                 alertDialog!!.dismiss()
             }
         }
-
-
-
 
         alertDialog = dialog.create()
         alertDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
@@ -811,5 +885,154 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         val isBm = ByteArrayInputStream(baos.toByteArray()) //The storage of compressed data in the baos to ByteArrayInputStream
         return BitmapFactory.decodeStream(isBm, null, null)
     }
+
+
+    // GET CREDBIZZ APP USERS
+    private fun getCredUsers(){
+        try {
+            if (Utils.isNetworkAvailable(this)){
+                val retrofit: Retrofit = RetrofitExtra.instance
+                val apis = retrofit.create(RetrofitService::class.java)
+
+                // REQUEST OBJECT
+                val reqObj = JsonObject()
+
+
+                // API CALL
+                apis.getAllProfiles().enqueue(object : retrofit2.Callback<List<ProfileDataModel>> {
+
+                    override fun onResponse(
+                        call: Call<List<ProfileDataModel>>,
+                        response: Response<List<ProfileDataModel>>
+                    ) {
+                        try {
+                            Log.e("getOtpRespprofile", response.toString())
+                            if (response.code() == 200) {
+                                Log.e("reqObj", response.raw().toString())
+                                val result: List<ProfileDataModel>
+
+                            } else {
+                                try {
+                                    val responseError = response.errorBody()?.string()
+                                    val gson = Gson()
+                                    val adapter = gson.getAdapter(JsonObject::class.java)
+                                    Log.e("gettransactionResp", response.message())
+                                    if (response.errorBody() != null) {
+                                        val registerResponse = adapter.fromJson(responseError)
+                                        if (registerResponse.has(Keys.error)) {
+                                            // Utils.showAlertCustom(context, registerResponse.get(Keys.error).asString)
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<List<ProfileDataModel>>, t: Throwable) {
+                        t.printStackTrace()
+                    }
+                })
+            } else {
+                Utils.showAlertCustom(context, resources.getString(R.string.no_network_connected))
+            }
+        } catch (e: Exception){
+            e.printStackTrace()
+        }
+    }
+
+    // CREATE DYNAMIC LINK
+    fun createDynamicLink(txnType : Int, notifyType : Int){
+        var shortLink : String = ""
+        FirebaseDynamicLinks.getInstance().createDynamicLink()
+            .setLink(Uri.parse(Keys.dynamicLinkPageUrl))
+            .setDomainUriPrefix(Keys.dynamicLinkPageTransactionLink)
+            .setAndroidParameters(
+                 DynamicLink.AndroidParameters.Builder(Keys.applicationId)
+                    .setMinimumVersion(1)
+                    .build())
+            .setIosParameters(
+                 DynamicLink.IosParameters.Builder("")
+                    .setAppStoreId("")
+                    .setMinimumVersion("")
+                    .build())
+            .buildShortDynamicLink()
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    shortLink = task.result.shortLink.toString()
+                    if (notifyType == 1) {
+                        if (txnType == 0) {
+                            val smsIntent = Intent(Intent.ACTION_VIEW)
+                            smsIntent.putExtra("sms_body", "You have lent "+ selectedContact + " " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " and he/she will paying it back on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink)
+                            smsIntent.data = Uri.parse("sms:"+selectedNumber)
+                            startActivity(smsIntent)
+                        } else if (txnType == 1) {
+                            val smsIntent = Intent(Intent.ACTION_VIEW)
+                            smsIntent.putExtra("sms_body", selectedContact + " has given you " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " on credit. Kindly repay the amount on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink)
+                            smsIntent.data = Uri.parse("sms:"+selectedNumber)
+                            startActivity(smsIntent)
+                        }
+                    } else if (notifyType == 2) {
+                        var contact =  "" // use country code with your phone number
+                        var contactNum = selectedNumber.toString().trim()
+                        if (contactNum.startsWith("+91")){
+                            contact = contactNum
+                        } else if (contactNum.length == 10) {
+                            contact = "+91 " + contactNum
+                        }
+                        if (txnType == 0) {
+                            val message : String = "You have lent "+ selectedContact + " " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " and he/she will paying it back on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink
+
+                            val url = "https://api.whatsapp.com/send?phone=$contact&text=$message"
+                            try {
+                                val pm = context.packageManager
+                                pm.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES)
+                                val i = Intent(Intent.ACTION_VIEW)
+                                i.data = Uri.parse(url)
+                                context.startActivity(i)
+                            } catch (e: PackageManager.NameNotFoundException) {
+                                Toast.makeText(
+                                    context,
+                                    "Whatsapp app not installed in your phone",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                e.printStackTrace()
+                            }
+                        } else if (txnType == 1) {
+                            val message : String = selectedContact + " has given you " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " on credit. Kindly repay the amount on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink
+
+                            val url =
+                                "https://api.whatsapp.com/send?phone=$contact&text=$message"
+                            try {
+                                val pm = context.packageManager
+                                pm.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES)
+                                val i = Intent(Intent.ACTION_VIEW)
+                                i.data = Uri.parse(url)
+                                context.startActivity(i)
+                            } catch (e: PackageManager.NameNotFoundException) {
+                                Toast.makeText(
+                                    context,
+                                    "Whatsapp app not installed in your phone",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                    ll_notify_popup.visibility = View.GONE
+                    finish()
+                }
+            }.addOnFailureListener {
+                Log.d("AAA", "test1 fail")
+                it.printStackTrace()
+            }
+
+
+    }
+
 
 }

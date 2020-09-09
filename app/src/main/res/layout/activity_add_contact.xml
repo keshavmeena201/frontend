@@ -1,59 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:background="@color/bg_black"
     tools:context=".activities.AddContact">
 
-    <include
-        layout="@layout/custom_toolbar"/>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/bg_black">
+        android:orientation="vertical">
 
-        <EditText
-            android:id="@+id/ed_search"
+        <include
+            layout="@layout/custom_toolbar"/>
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/white_bg"
-            android:padding="10dp"
-            android:layout_marginBottom="@dimen/_8sdp"
+            android:orientation="vertical"
+            android:background="@color/bg_black">
+
+            <EditText
+                android:id="@+id/ed_search"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/white_bg"
+                android:padding="10dp"
+                android:layout_marginBottom="@dimen/_8sdp"
+                android:fontFamily="@font/montserrat_regular"
+                android:inputType="text"
+                android:textSize="@dimen/_12sdp"
+                android:lines="1"
+                android:textColor="@color/grey_text_color"
+                android:singleLine="true"
+                android:layout_marginStart="12dp"
+                android:layout_marginEnd="12dp"
+                android:imeOptions="actionDone"
+                android:hint="@string/hint_type_name"/>
+
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rec_contacts_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/bg_black"
+            tools:listitem="@layout/contact_icon"
+            />
+
+        <TextView
+            android:id="@+id/tx_empty"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="@dimen/_13sdp"
+            android:textColor="@color/white"
             android:fontFamily="@font/montserrat_regular"
-            android:inputType="text"
-            android:textSize="@dimen/_12sdp"
-            android:lines="1"
-            android:textColor="@color/grey_text_color"
-            android:singleLine="true"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="12dp"
-            android:imeOptions="actionDone"
-            android:hint="@string/hint_type_name"/>
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:visibility="gone"
+            android:text="@string/no_contact_found"/>
 
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rec_contacts_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@color/bg_black"
-        tools:listitem="@layout/contact_icon"
-        />
+    <include layout="@layout/notify_popup" />
 
-    <TextView
-        android:id="@+id/tx_empty"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:textSize="@dimen/_13sdp"
-        android:textColor="@color/white"
-        android:fontFamily="@font/montserrat_regular"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:visibility="gone"
-        android:text="@string/no_contact_found"/>
 
-</LinearLayout>
+
+
+
+
+
+</FrameLayout>

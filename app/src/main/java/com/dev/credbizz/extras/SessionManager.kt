@@ -124,7 +124,7 @@ class SessionManager(// Context
         }
 
     var isUserFirstTime : Boolean?
-        get() = pref.getBoolean(IS_USER_FIRST_TIME, true)
+        get() = pref.getBoolean(IS_USER_FIRST_TIME, false)
         set(isUserVerified) {
             editor.putBoolean(IS_USER_FIRST_TIME, isUserVerified!!)
             editor.commit()
