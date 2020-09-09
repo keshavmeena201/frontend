@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "264212787719",
+    "firebase_url": "https://credbizz-e9a57.firebaseio.com",
+    "project_id": "credbizz-e9a57",
+    "storage_bucket": "credbizz-e9a57.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:264212787719:android:c4475e8445ff8e4b2430a2",
+        "android_client_info": {
+          "package_name": "com.dev.credbizz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "264212787719-uuggej0sfpp3p4sge35cp95hs694ed16.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8kYi9IBaCc46s9r4qzz_hq2Qgq49S_Pc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "264212787719-uuggej0sfpp3p4sge35cp95hs694ed16.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,67 @@
+<resources>
+    <string name="app_name">Credbizz</string>
+
+    <string name="ok">OK</string>
+    <string name="tag_line">Making credit Simpler.</string>
+    <string name="secure_text">100% Safe &amp; Secure</string>
+    <string name="rupee_symbol">₹</string>
+
+    <string name="enter_mobile_number">Enter your mobile number</string>
+    <string name="otp_msg">We will send you a OTP Message</string>
+    <string name="hint_mobile_number">Enter Your 10 Digit Mobile Number</string>
+    <string name="send_otp">Send OTP</string>
+    <string name="greetings_msg">Let\'s Get Started</string>
+    <string name="welcome_msg">Welcome to Credbizz!</string>
+    <string name="verify_msg">Let\'s got you verified</string>
+    <string name="hint_org_name">ENTER NAME OF COMPANY/SHOP</string>
+    <string name="lets_get_start">Let\'s get start!</string>
+    <string name="view_credit_score">VIEW MY CREDBIZZ SCORE
+</string>
+
+    <string name="otp_label">Verification code has been send to your mobile number</string>
+    <string name="done">Done</string>
+    <string name="enter_otp">Verifying OTP</string>
+    <string name="verify_otp">Verify Otp</string>
+    <string name="verify">Verify</string>
+    <string name="number_verified">Mobile number verified!</string>
+    <string name="org_name">Name</string>
+    <string name="refresh_score">Refresh Score</string>
+    <string name="last_updated">Last updated on 29/08/2020 01:30:00</string>
+    <string name="add_payment">Add Payment</string>
+    <string name="hint_type_name">Search Contact Name</string>
+    <string name="denied_permission">Permission denied</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="no_contact_found">No contact found</string>
+    <string name="save">Save</string>
+    <string name="camera_str">Attach bills</string>
+    <string name="select_date">Select Date</string>
+    <string name="attach_bills">Attach bills</string>
+    <string name="take_picture">Take picture</string>
+    <string name="open_gallery">Open from gallery</string>
+    <string name="cancel">Cancel</string>
+    <string name="male">Credit</string>
+    <string name="borrow">Borrow</string>
+    <string name="you_gave">You Gave</string>
+    <string name="you_got">You Got</string>
+    <string name="select_action">Select Transaction</string>
+    <string name="send_message">Send Message</string>
+    <string name="whats_app">Send WhatsApp</string>
+    <string name="notify_text">Notify</string>
+    <string name="settle_up">Settle up</string>
+    <string name="settle_this_transaction">Settle this transaction</string>
+    <string name="compelte">Complete</string>
+    <string name="partial">Partial</string>
+    <string name="error_name">Please enter company name</string>
+    <string name="total_payment">Total Payment</string>
+    <string name="partial_payment">Partial Payment</string>
+    <string name="repayment_date">Repayment date :</string>
+    <string name="you_will_give">You will get</string>
+    <string name="you_will_get">You will get</string>
+    <string name="improve_score">Improve Score</string>
+    <string name="amount_paid">Amount Paid</string>
+    <string name="repayment_date_str">Repayment date of remaining amount</string>
+    <string name="repayment_str">Repayment Date</string>
+    <string name="no_network_connected">Internet not connected!</string>
+    <string name="error_empty_mobile">Please enter mobile number</string>
+    <string name="error_valid_mobile">Please enter valid mobile number</string>
+</resources>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content" android:layout_height="wrap_content"
+    android:padding="@dimen/_8sdp"
+    android:layout_centerInParent="true">
+
+
+    <RelativeLayout
+        android:id="@+id/rel_bg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/iv_bg"
+            android:layout_width="@dimen/_30sdp"
+            android:layout_height="@dimen/_30sdp"
+            android:src="@drawable/circle_bg"/>
+
+
+        <TextView
+            android:id="@+id/tx_contact_alpha"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:lines="1"
+            android:text="A"
+            android:textSize="@dimen/_13sdp"
+            android:textColor="@color/white"
+            android:layout_centerInParent="true"
+            android:fontFamily="@font/montserrat_regular"
+            />
+
+
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/iv_app_icon"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:src="@drawable/ic_launcher"
+        android:layout_toEndOf="@+id/rel_bg"
+        android:layout_alignBottom="@+id/rel_bg"
+        android:layout_marginStart="-12dp"/>
+
+
+</RelativeLayout>
