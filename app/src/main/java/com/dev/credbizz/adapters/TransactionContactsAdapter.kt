@@ -1,9 +1,12 @@
 package com.dev.credbizz.adapters
 
+import android.R.id.text2
 import android.content.Context
+import android.graphics.Color
 import android.text.Html
 import android.text.Spannable
 import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
 import android.text.style.ImageSpan
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,6 +19,7 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.dev.credbizz.R
 import com.dev.credbizz.dbHelper.Constants
+import com.dev.credbizz.extras.EasyMoneyEditText
 import com.dev.credbizz.extras.Keys
 import com.dev.credbizz.extras.SessionManager
 import com.dev.credbizz.models.TransactionModel
@@ -58,17 +62,42 @@ class TransactionContactsAdapter(
             }
 
             if (contactsModels[position].fromMobileNumber == sessionManager.mobileNumber){
-                contactssViewHolder.txContactAlpha.text = sessionManager.mobileNumber.toString().substring(0, 1)
+                var maskEdit : EasyMoneyEditText = EasyMoneyEditText(context)
+                maskEdit.showCurrencySymbol()
+                maskEdit.setCurrency(Keys.rupeeSymbol)
+                maskEdit.showCommas()
+                maskEdit.setText(contactsModels[position].principleAmount.toString())
+                maskEdit.setTextColor(Color.RED)
+
+                val spannable: Spannable = SpannableString(maskEdit.text.toString())
+
+                spannable.setSpan(
+                    ForegroundColorSpan(Color.RED),
+                    0,
+                    maskEdit.length(),
+                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+
+                contactssViewHolder.txContactAlpha.text = sessionManager.mobileNumber.toString().substring(
+                    0,
+                    1
+                )
                 var help = contactsModels[position].principleAmount.toString()
-                help = help.replace(contactsModels[position].principleAmount.toString(), "<font color='#D50000'>" + Keys.rupeeSymbol + contactsModels[position].principleAmount.toString() + "</font>")
+                help = help.replace(
+                    contactsModels[position].principleAmount.toString(),
+                    "<font color='#D50000'>" + Keys.rupeeSymbol + contactsModels[position].principleAmount.toString() + "</font>"
+                )
                 val preString = "Pay " +  Html.fromHtml(help) +  " to " +contactsModels[position].fromMobileNumber
                 val ss = SpannableString(preString)
                 val d = ContextCompat.getDrawable(context, R.drawable.ic_give)
                 val span = ImageSpan(d!!, ImageSpan.ALIGN_BASELINE)
                 ss.setSpan(span, 0, preString.length, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
-                contactssViewHolder.txContactName.text = ss.toString()
+                contactssViewHolder.txContactName.setText("Pay " + spannable.toString() + " to " +contactsModels[position].fromMobileNumber, TextView.BufferType.SPANNABLE)
             } else {
-                contactssViewHolder.txContactAlpha.text = contactsModels[position].fromMobileNumber.toString().substring(0, 1)
+                contactssViewHolder.txContactAlpha.text = contactsModels[position].fromMobileNumber.toString().substring(
+                    0,
+                    1
+                )
                 var help = contactsModels[position].principleAmount.toString()
                 help = help.replace(
                     contactsModels[position].principleAmount.toString(),
@@ -87,7 +116,7 @@ class TransactionContactsAdapter(
                     0
                 )
                 contactssViewHolder.txContactTxn.text = contactsModels[position].principleAmount.toString()
-                contactssViewHolder.txContactName.text = contactsModels[position].fromMobileNumber + " will give you "
+                contactssViewHolder.txContactName.text = "Get " + Keys.rupeeSymbol + contactsModels[position].principleAmount + " from "  + contactsModels[position].fromMobileNumber
             }
 
             contactssViewHolder.btnSettleUp.setOnClickListener {

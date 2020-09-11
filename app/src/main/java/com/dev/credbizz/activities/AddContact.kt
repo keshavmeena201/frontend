@@ -519,9 +519,12 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
 
         txAmountHeader.text = "You gave " + Keys.rupeeSymbol + "0 to " + contactName
 
-        val dateString: String = SimpleDateFormat("dd MMM yy").format(Date())
-        val serverDate: String =
-            SimpleDateFormat("yyyy-MM-dd").format(Date())
+
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.MONTH, 1)
+        val date = Date(cal.timeInMillis)
+        val dateString: String = SimpleDateFormat("dd MMM yy").format(date)
+        val serverDate: String = SimpleDateFormat("yyyy-MM-dd").format(date)
         serverDateString = serverDate
         txAmountDate.text = dateString
 
@@ -680,7 +683,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         try {
             val c = Calendar.getInstance()
             val year = c[Calendar.YEAR]
-            val month = c[Calendar.MONTH]
+            val month = c[Calendar.MONTH]+1
             val day = c[Calendar.DAY_OF_MONTH]
             val datePicker: DatePickerDialog = DatePickerDialog(
                 context, R.style.DatePickerTheme,
