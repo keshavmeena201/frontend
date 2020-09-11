@@ -23,6 +23,10 @@ import com.dev.credbizz.extras.EasyMoneyEditText
 import com.dev.credbizz.extras.Keys
 import com.dev.credbizz.extras.SessionManager
 import com.dev.credbizz.models.TransactionModel
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.*
+import kotlin.collections.ArrayList
 
 
 class TransactionContactsAdapter(
@@ -62,6 +66,7 @@ class TransactionContactsAdapter(
             }
 
             if (contactsModels[position].fromMobileNumber == sessionManager.mobileNumber){
+                contactssViewHolder.ivAction.setImageResource(R.drawable.ic_get)
                 var maskEdit : EasyMoneyEditText = EasyMoneyEditText(context)
                 maskEdit.showCurrencySymbol()
                 maskEdit.setCurrency(Keys.rupeeSymbol)
@@ -78,26 +83,39 @@ class TransactionContactsAdapter(
                     Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
                 )
 
-                contactssViewHolder.txContactAlpha.text = sessionManager.mobileNumber.toString().substring(
-                    0,
-                    1
-                )
+
                 var help = contactsModels[position].principleAmount.toString()
                 help = help.replace(
                     contactsModels[position].principleAmount.toString(),
                     "<font color='#D50000'>" + Keys.rupeeSymbol + contactsModels[position].principleAmount.toString() + "</font>"
                 )
-                val preString = "Pay " +  Html.fromHtml(help) +  " to " +contactsModels[position].fromMobileNumber
-                val ss = SpannableString(preString)
-                val d = ContextCompat.getDrawable(context, R.drawable.ic_give)
-                val span = ImageSpan(d!!, ImageSpan.ALIGN_BASELINE)
-                ss.setSpan(span, 0, preString.length, Spannable.SPAN_INCLUSIVE_EXCLUSIVE)
-                contactssViewHolder.txContactName.setText("Pay " + spannable.toString() + " to " +contactsModels[position].fromMobileNumber, TextView.BufferType.SPANNABLE)
+                if (contactsModels[position].transactionDueDate != null) {
+                    var dateStr: String = ""
+                    val claimTableFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+                    try {
+                        val claimDate: Date? = claimTableFormat.parse(contactsModels[position].transactionDueDate)
+                        val timeFormat = SimpleDateFormat("dd/MM/yyyy")
+                        val finalDate = timeFormat.format(claimDate)
+                        dateStr = finalDate
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                    }
+                    contactssViewHolder.txContactName.text =
+                        "Get " + maskEdit.text.toString() + " from " + contactsModels[position].toName + " on " + dateStr
+                } else {
+                    contactssViewHolder.txContactName.text =
+                        "Get " + maskEdit.text.toString() + " from " + contactsModels[position].toName
+                }
             } else {
-                contactssViewHolder.txContactAlpha.text = contactsModels[position].fromMobileNumber.toString().substring(
-                    0,
-                    1
-                )
+                contactssViewHolder.ivAction.setImageResource(R.drawable.ic_give)
+
+
+                var maskEdit : EasyMoneyEditText = EasyMoneyEditText(context)
+                maskEdit.showCurrencySymbol()
+                maskEdit.setCurrency(Keys.rupeeSymbol)
+                maskEdit.showCommas()
+                maskEdit.setText(contactsModels[position].principleAmount.toString())
+                maskEdit.setTextColor(Color.GREEN)
                 var help = contactsModels[position].principleAmount.toString()
                 help = help.replace(
                     contactsModels[position].principleAmount.toString(),
@@ -115,8 +133,25 @@ class TransactionContactsAdapter(
                     0,
                     0
                 )
-                contactssViewHolder.txContactTxn.text = contactsModels[position].principleAmount.toString()
-                contactssViewHolder.txContactName.text = "Get " + Keys.rupeeSymbol + contactsModels[position].principleAmount + " from "  + contactsModels[position].fromMobileNumber
+                if (contactsModels[position].transactionDueDate != null) {
+                    var dateStr: String = ""
+                    val claimTableFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+                    try {
+                        val claimDate: Date? =
+                            claimTableFormat.parse(contactsModels[position].transactionDueDate)
+                        val timeFormat = SimpleDateFormat("dd/MM/yyyy")
+                        val finalDate = timeFormat.format(claimDate)
+                        dateStr = finalDate
+                    } catch (e: ParseException) {
+                        e.printStackTrace()
+                    }
+                    contactssViewHolder.txContactTxn.text =
+                        contactsModels[position].principleAmount.toString()
+                    contactssViewHolder.txContactName.setText("Pay " + maskEdit.text.toString() + " to " + contactsModels[position].fromName + " on " + dateStr)
+                } else {
+                    contactssViewHolder.txContactName.setText("Pay " + maskEdit.text.toString() + " to " + contactsModels[position].fromName)
+                }
+
             }
 
             contactssViewHolder.btnSettleUp.setOnClickListener {
@@ -127,13 +162,13 @@ class TransactionContactsAdapter(
     }
 
     inner class contactListViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView){
-        var txContactAlpha : TextView = itemView.findViewById(R.id.tx_contact_alpha)
         var txContactName : TextView = itemView.findViewById(R.id.tx_contact_name)
         var txContactNumber : TextView = itemView.findViewById(R.id.tx_contact_number)
         var txContactCreditScore : TextView = itemView.findViewById(R.id.tx_contact_credit_score)
         val txContactTxn : TextView = itemView.findViewById(R.id.tx_contact_txn)
         var ivAppIcon : ImageView = itemView.findViewById(R.id.iv_app_icon)
         var btnSettleUp : Button = itemView.findViewById(R.id.btn_settle_up)
+        var ivAction : ImageView = itemView.findViewById(R.id.iv_action)
 
     }
 

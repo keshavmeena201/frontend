@@ -427,7 +427,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         dialog.setView(dialogView)
         dialog.setCancelable(true)
 
-        val type : Int = 0
+        var type : Int = 0
 
         edAmount = dialogView.findViewById(R.id.ed_amount)
 
@@ -449,15 +449,17 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         val radioButton = rgTransactionType.findViewById(radioButtonID) as RadioButton
         val selectedText = radioButton.text as String
 
+        edAmount.setText(transactionModel.principleAmount.toString())
 
         // GENDER SELECT
         rgTransactionType.setOnCheckedChangeListener { radioGroup, i ->
             Utils.hideSoftKeyboard(this@Dashboard)
             if (i == R.id.rb_give) {
-                type == 0
+                type = 0
                 transactionModel.settled = true
                 //txAmountHeader.text = "You got " + Keys.rupeeSymbol + "0 from " + contactName
                 //txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.green))
+                edAmount.setText(transactionModel.principleAmount.toString())
                 edAmount.setTextColor(ContextCompat.getColor(context, R.color.green))
                 txAmountDate.setTextColor(ContextCompat.getColor(context, R.color.green))
                 txRupeeSymbol.setTextColor(ContextCompat.getColor(context, R.color.green))
@@ -469,10 +471,11 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                 Utils.setTextViewDrawableColor(context, txAmountBills, R.color.green)
                 btnSave.setBackgroundResource(R.drawable.green_corner_bg)
             } else if (i == R.id.rb_got) {
-                type == 1
+                type = 1
                 transactionModel.partial = true
                 //txAmountHeader.text = "You gave " + Keys.rupeeSymbol + "0 to " + contactName
                 //txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.red))
+                edAmount.setText("0")
                 edAmount.setTextColor(ContextCompat.getColor(context, R.color.green))
                 txAmountDate.setTextColor(ContextCompat.getColor(context, R.color.green))
                 txRupeeSymbol.setTextColor(ContextCompat.getColor(context, R.color.green))
@@ -532,8 +535,11 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         }
 
         btnSave.setOnClickListener {
-            transactionModel.amountPaid = edAmount.text.toString().trim().toInt()
-            transactionModel.nextDate = SimpleDateFormat("yyyy-MM-dd").format(Date())
+            transactionModel.amountPaid = edAmount.text.toString().trim().replace(",", "").toInt()
+            transactionModel.nextDate = dateString
+           // val txnDate : String = transactionModel.transactionDate.substring(0, 10)
+            transactionModel.transactionDate = null.toString()
+            Log.e("txnDate", transactionModel.transactionDate)
             settleUp(transactionModel)
             //send addtransaction request
             alertDialog.dismiss()
@@ -554,15 +560,12 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                 val retrofit: Retrofit = RetrofitExtra.instance
                 val apis = retrofit.create(RetrofitService::class.java)
 
-                // REQUEST OBJECT
-
-
                 // API CALL
-                apis.settleUp(transactionModel).enqueue(object : retrofit2.Callback<String>{
+                apis.settleUp(transactionModel).enqueue(object : retrofit2.Callback<JsonObject>{
 
                     override fun onResponse(
-                        call: Call<String>,
-                        response: Response<String>
+                        call: Call<JsonObject>,
+                        response: Response<JsonObject>
                     ) {
                         try {
                             Log.e("getOtpResp", response.toString())
@@ -592,7 +595,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                         }
                     }
 
-                    override fun onFailure(call: Call<String>, t: Throwable) {
+                    override fun onFailure(call: Call<JsonObject>, t: Throwable) {
                         t.printStackTrace()
                     }
                 })

@@ -37,7 +37,7 @@ interface RetrofitService {
     fun getProfile(@Path("mobileNumber") mobileNumber: String) : Call<ProfileDataModel>
 
     @POST(Keys.settleUp )
-    fun settleUp(@Body jsonObject: TransactionModel) : Call<String>
+    fun settleUp(@Body jsonObject: TransactionModel) : Call<JsonObject>
 
     @GET(Keys.getAllProfiles)
     fun getAllProfiles() : Call<List<ProfileDataModel>>

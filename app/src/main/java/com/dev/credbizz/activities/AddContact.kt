@@ -240,6 +240,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         // NOTIFY POPUP CLICK EVENTS
         iv_close.setOnClickListener {
             ll_notify_popup.visibility = View.GONE
+            finish()
         }
 
         tx_send_message.setOnClickListener {
@@ -500,7 +501,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                 R.id.rb_got -> {
                     selectedText = resources.getString(R.string.you_got)
                     txAmountHeader.text =
-                        "You got " + Keys.rupeeSymbol + " " + edAmount.text.toString()
+                        "You received " + Keys.rupeeSymbol + " " + edAmount.text.toString()
                             .trim() + " from " + contactName
                     txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.yellow))
                     edAmount.setTextColor(ContextCompat.getColor(context, R.color.yellow))
@@ -551,7 +552,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                     txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.green))
                 } else if (selectedText == resources.getString(R.string.you_got)) {
                     txAmountHeader.text =
-                        "You got " + Keys.rupeeSymbol + " " + p0.toString() + " from " + contactName
+                        "You received " + Keys.rupeeSymbol + " " + p0.toString() + " from " + contactName
                     txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.yellow))
                 }
             }
@@ -578,15 +579,22 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
             val reqObj = JsonObject()
             var txn : Int = 0;
             if (selectedText == resources.getString(R.string.you_gave)) {
-                reqObj.addProperty("toMobileNumber", sessionManager.mobileNumber)
-                reqObj.addProperty("fromMobileNumber", contactNumber)
-                type = 0
-            } else{
                 reqObj.addProperty("fromMobileNumber", sessionManager.mobileNumber)
                 reqObj.addProperty("toMobileNumber", contactNumber)
+                reqObj.addProperty("fromName", sessionManager.orgName)
+                reqObj.addProperty("toName", contactName)
+                reqObj.addProperty("transactionType", true)
+                type = 0
+            } else{
+                reqObj.addProperty("toMobileNumber", sessionManager.mobileNumber)
+                reqObj.addProperty("fromMobileNumber", contactNumber)
+                reqObj.addProperty("fromName", contactName)
+                reqObj.addProperty("toName", sessionManager.orgName)
+                reqObj.addProperty("transactionType", false)
+
                 type = 1
             }
-            reqObj.addProperty("nextDate", serverDateString.toString())
+            reqObj.addProperty("transactionDueDate", serverDateString.toString())
 
             var formatValue = edAmount.text.toString().trim()
             if (formatValue.contains(",")){

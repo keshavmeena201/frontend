@@ -42,7 +42,7 @@
     <string name="male">Credit</string>
     <string name="borrow">Borrow</string>
     <string name="you_gave">You Gave</string>
-    <string name="you_got">You Got</string>
+    <string name="you_got">You Received</string>
     <string name="select_action">Select Transaction</string>
     <string name="send_message">Send Message</string>
     <string name="whats_app">Send WhatsApp</string>
@@ -65,7 +65,7 @@
     <string name="error_empty_mobile">Please enter mobile number</string>
     <string name="error_valid_mobile">Please enter valid mobile number</string>
     <string name="txn_saved">Transaction successfully saved!</string>
-    <string name="notify_label">"Are you want to notify "</string>
+    <string name="notify_label">"Do you want to notify "</string>
     <string name="refer_a_friend">Refer a friend</string>
     <string name="share_text">Hey there!! Download the Credbizz app and make payments everywhere on credit.</string>
     <string name="close">Close</string>

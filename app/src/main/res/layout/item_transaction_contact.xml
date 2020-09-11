@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <include layout="@layout/contact_icon" />
+        <include layout="@layout/contact_icon_new" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -61,6 +61,7 @@
                     android:fontFamily="@font/montserrat_regular"
                     android:textColor="@color/white"
                     android:textSize="@dimen/_10sdp"
+                    android:lineSpacingExtra="1dp"
                     android:visibility="gone"/>
 
                 <RelativeLayout

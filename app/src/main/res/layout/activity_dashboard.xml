@@ -148,6 +148,7 @@
             android:textAllCaps="false" />
 
         <TextView
+            android:id="@+id/tx_last_update"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="@font/montserrat_regular"
@@ -227,7 +228,6 @@
                     android:layout_centerVertical="true"
                     android:textColor="@color/green"
                     android:drawableStart="@drawable/ic_get"
-                    android:text="₹ 20,000"
                     android:drawablePadding="@dimen/_2sdp"
                     android:layout_marginStart="@dimen/_2sdp"
                     android:gravity="center"
@@ -273,7 +273,6 @@
                     android:layout_centerVertical="true"
                     android:textColor="@color/red"
                     android:drawableStart="@drawable/ic_give"
-                    android:text="₹ 15,000"
                     android:drawablePadding="@dimen/_2sdp"
                     android:layout_marginStart="@dimen/_2sdp"
                     android:layout_toEndOf="@+id/tx_give"

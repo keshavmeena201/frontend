@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="170dp"
         android:orientation="vertical"
-        app:cardBackgroundColor="@color/bg_black"
+        app:cardBackgroundColor="@color/white"
         app:cardCornerRadius="@dimen/_8sdp"
         android:elevation="0dp">
 
@@ -29,6 +29,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_close"
+                app:tint="@color/colorPrimary"
                 android:layout_marginTop="@dimen/_8sdp"
                 android:layout_gravity="end"
                 android:paddingEnd="@dimen/_8sdp" />
@@ -46,11 +47,12 @@
                     android:id="@+id/tx_notify_user"
                     android:layout_width="match_parent"
                     android:layout_height="40dp"
-                    android:text="@string/send_message"
+                    android:text="@string/notify_label"
                     android:gravity="center"
                     android:fontFamily="@font/montserrat_regular"
-                    android:textColor="@color/white"
+                    android:textColor="@color/black"
                     android:lines="1"
+                    android:textSize="@dimen/_13ssp"
                     android:ellipsize="end"
                     android:paddingStart="@dimen/_8sdp"
                     android:paddingEnd="@dimen/_8sdp" />

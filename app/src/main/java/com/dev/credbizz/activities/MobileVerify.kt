@@ -152,7 +152,7 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
         dialog = AlertDialog.Builder(context)
         val dialogView: View = LayoutInflater.from(context).inflate(R.layout.verify_otp_popup, null)
         dialog.setView(dialogView)
-        dialog.setCancelable(true)
+        dialog.setCancelable(false)
 
         var constants = Constants()
         constants.setMobileNum(ed_mobile_number.text.toString().trim())
