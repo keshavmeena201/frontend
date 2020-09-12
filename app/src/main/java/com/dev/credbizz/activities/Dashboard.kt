@@ -309,7 +309,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                 val apis = retrofit.create(RetrofitService::class.java)
                 if (isRefresh) {
                     dialogLoader.showProgressDialog()
-                    isRefresh = false
+
                 }
                 // REQUEST OBJECT
                 val reqObj = JsonObject()
@@ -331,7 +331,13 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                                 val responseString = response.body().toString()
                                 Log.e("getOtpResp", responseString)
 
-                                Utils.showAlertCustom(context, resources.getString(R.string.transactions_updated))
+                                if (isRefresh) {
+                                    Utils.showAlertCustom(
+                                        context,
+                                        resources.getString(R.string.transactions_updated)
+                                    )
+                                    isRefresh = false
+                                }
 
 //                                val gson = Gson()
 //                                val itemType = object : TypeToken<List<TransactionModel>>() {}.type
