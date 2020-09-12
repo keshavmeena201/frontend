@@ -142,7 +142,7 @@
                 android:id="@+id/btn_refresh"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:text="@string/refresh_score"
+                android:text="@string/refresh_transactions"
                 android:background="@drawable/blue_btn_bg"
                 android:textColor="@color/white"
                 android:fontFamily="@font/montserrat_regular"
@@ -163,7 +163,8 @@
                 android:textColor="@color/white"
                 android:textSize="@dimen/_9sdp"
                 android:layout_marginTop="@dimen/_6sdp"
-                android:layout_gravity="center"/>
+                android:layout_gravity="center"
+                android:visibility="gone"/>
 
 
 
@@ -179,7 +180,7 @@
                 android:layout_marginStart="@dimen/_4sdp"
                 android:padding="@dimen/_6sdp"
                 android:gravity="center"
-                android:layout_gravity="end"
+                android:layout_gravity="center"
                 android:fontFamily="@font/montserrat_regular"
                 android:layout_marginEnd="@dimen/_4sdp"
                 android:layout_marginRight="@dimen/_4sdp"/>

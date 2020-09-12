@@ -11,6 +11,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.dev.credbizz.R
 import com.dev.credbizz.extras.SessionManager
+import com.dev.credbizz.extras.Utils
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 
 
@@ -55,14 +56,22 @@ class Splash : AppCompatActivity() {
 
         Handler(Looper.myLooper()!!).postDelayed(Runnable {
             if (sessionManager.isUserFirstTime!!) {
-                val mobileVerify = Intent(context, Dashboard::class.java)
-                mobileVerify.flags =
-                    Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(mobileVerify)
+                if (Utils.isNetworkAvailable(this)){
+                    val mobileVerify = Intent(context, Dashboard::class.java)
+                    mobileVerify.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(mobileVerify)
+                } else {
+                    Utils.showAlertCustom(context, resources.getString(R.string.no_network_connected))
+                }
             } else {
-                val dashboard = Intent(context, MobileVerify::class.java)
-                dashboard.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                startActivity(dashboard)
+                if (Utils.isNetworkAvailable(this)) {
+                    val dashboard = Intent(context, MobileVerify::class.java)
+                    dashboard.flags =
+                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    startActivity(dashboard)
+                }  else {
+                    Utils.showAlertCustom(context, resources.getString(R.string.no_network_connected))
+                }
             }
 
         }, 1000)

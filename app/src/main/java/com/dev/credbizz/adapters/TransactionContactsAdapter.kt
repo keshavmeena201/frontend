@@ -60,19 +60,25 @@ class TransactionContactsAdapter(
             contactssViewHolder.txContactCreditScore.text = "600"
             contactssViewHolder.txContactCreditScore.visibility = View.VISIBLE
 
-            if (contactsModels[position].settled){
+            /*if (contactsModels[position].settled){
                 contactssViewHolder.ivAppIcon.visibility = View.VISIBLE
             } else {
                 contactssViewHolder.ivAppIcon.visibility = View.GONE
-            }
+            }*/
 
             if (contactsModels[position].fromMobileNumber == sessionManager.mobileNumber){
                 contactssViewHolder.ivAction.setImageResource(R.drawable.ic_get)
+                var totalAmount = contactsModels[position].principleAmount - contactsModels[position].amountPaid
                 var maskEdit : EasyMoneyEditText = EasyMoneyEditText(context)
                 maskEdit.showCurrencySymbol()
                 maskEdit.setCurrency(Keys.rupeeSymbol)
                 maskEdit.showCommas()
-                maskEdit.setText(contactsModels[position].principleAmount.toString())
+                if (totalAmount == 0){
+                    maskEdit.setText(contactsModels[position].principleAmount.toString())
+                } else {
+                    maskEdit.setText(totalAmount.toString())
+                }
+
                 maskEdit.setTextColor(Color.RED)
 
                 val spannable: Spannable = SpannableString(maskEdit.text.toString())
@@ -90,32 +96,58 @@ class TransactionContactsAdapter(
                     contactsModels[position].principleAmount.toString(),
                     "<font color='#D50000'>" + Keys.rupeeSymbol + contactsModels[position].principleAmount.toString() + "</font>"
                 )
-                if (contactsModels[position].transactionDueDate != null) {
-                    var dateStr: String = ""
-                    val claimTableFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-                    try {
-                        val claimDate: Date? = claimTableFormat.parse(contactsModels[position].transactionDueDate)
-                        val timeFormat = SimpleDateFormat("dd/MM/yyyy")
-                        val finalDate = timeFormat.format(claimDate)
-                        dateStr = finalDate
-                    } catch (e: ParseException) {
-                        e.printStackTrace()
+
+                if (totalAmount == 0){
+                    if (contactsModels[position].transactionDate != null) {
+                        var dateStr: String = ""
+                        val claimTableFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+                        try {
+                            val claimDate: Date? = claimTableFormat.parse(contactsModels[position].transactionDate)
+                            val timeFormat = SimpleDateFormat("dd/MM/yyyy")
+                            val finalDate = timeFormat.format(claimDate)
+                            dateStr = finalDate
+                        } catch (e: ParseException) {
+                            e.printStackTrace()
+                        }
+                        contactssViewHolder.txContactName.text =
+                            "Got " + maskEdit.text.toString() + " from " + contactsModels[position].toName + " on " + dateStr
+                    } else {
+                        contactssViewHolder.txContactName.text =
+                            "Get " + maskEdit.text.toString() + " from " + contactsModels[position].toName
                     }
-                    contactssViewHolder.txContactName.text =
-                        "Get " + maskEdit.text.toString() + " from " + contactsModels[position].toName + " on " + dateStr
                 } else {
-                    contactssViewHolder.txContactName.text =
-                        "Get " + maskEdit.text.toString() + " from " + contactsModels[position].toName
+                    if (contactsModels[position].transactionDueDate != null) {
+                        var dateStr: String = ""
+                        val claimTableFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+                        try {
+                            val claimDate: Date? = claimTableFormat.parse(contactsModels[position].transactionDueDate)
+                            val timeFormat = SimpleDateFormat("dd/MM/yyyy")
+                            val finalDate = timeFormat.format(claimDate)
+                            dateStr = finalDate
+                        } catch (e: ParseException) {
+                            e.printStackTrace()
+                        }
+                        contactssViewHolder.txContactName.text =
+                            "Get " + maskEdit.text.toString() + " from " + contactsModels[position].toName + " on " + dateStr
+                    } else {
+                        contactssViewHolder.txContactName.text =
+                            "Get " + maskEdit.text.toString() + " from " + contactsModels[position].toName
+                    }
                 }
+
             } else {
                 contactssViewHolder.ivAction.setImageResource(R.drawable.ic_give)
-
+                var totalAmount = contactsModels[position].principleAmount - contactsModels[position].amountPaid
 
                 var maskEdit : EasyMoneyEditText = EasyMoneyEditText(context)
                 maskEdit.showCurrencySymbol()
                 maskEdit.setCurrency(Keys.rupeeSymbol)
                 maskEdit.showCommas()
-                maskEdit.setText(contactsModels[position].principleAmount.toString())
+                if (totalAmount == 0){
+                    maskEdit.setText(contactsModels[position].principleAmount.toString())
+                } else {
+                    maskEdit.setText(totalAmount.toString())
+                }
                 maskEdit.setTextColor(Color.GREEN)
                 var help = contactsModels[position].principleAmount.toString()
                 help = help.replace(
@@ -134,30 +166,54 @@ class TransactionContactsAdapter(
                     0,
                     0
                 )
-                if (contactsModels[position].transactionDueDate != null) {
-                    var dateStr: String = ""
-                    val claimTableFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
-                    try {
-                        val claimDate: Date? =
-                            claimTableFormat.parse(contactsModels[position].transactionDueDate)
-                        val timeFormat = SimpleDateFormat("dd/MM/yyyy")
-                        val finalDate = timeFormat.format(claimDate)
-                        dateStr = finalDate
-                    } catch (e: ParseException) {
-                        e.printStackTrace()
+                var dateStr: String = ""
+                if (totalAmount == 0){
+                    if (contactsModels[position].transactionDate != null) {
+
+                        val claimTableFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+                        try {
+                            val claimDate: Date? =
+                                claimTableFormat.parse(contactsModels[position].transactionDate)
+                            val timeFormat = SimpleDateFormat("dd/MM/yyyy")
+                            val finalDate = timeFormat.format(claimDate)
+                            dateStr = finalDate
+                        } catch (e: ParseException) {
+                            e.printStackTrace()
+                        }
+                        contactssViewHolder.txContactTxn.text = contactsModels[position].principleAmount.toString()
+                        contactssViewHolder.txContactName.setText("Paid " + maskEdit.text.toString() + " to " + contactsModels[position].fromName + " on " + dateStr)
+                    } else {
+                        contactssViewHolder.txContactName.setText("Pay " + maskEdit.text.toString() + " to " + contactsModels[position].fromName)
                     }
-                    contactssViewHolder.txContactTxn.text = contactsModels[position].principleAmount.toString()
-                    contactssViewHolder.txContactName.setText("Pay " + maskEdit.text.toString() + " to " + contactsModels[position].fromName + " on " + dateStr)
                 } else {
-                    contactssViewHolder.txContactName.setText("Pay " + maskEdit.text.toString() + " to " + contactsModels[position].fromName)
+                    if (contactsModels[position].transactionDueDate != null) {
+
+                        val claimTableFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
+                        try {
+                            val claimDate: Date? =
+                                claimTableFormat.parse(contactsModels[position].transactionDueDate)
+                            val timeFormat = SimpleDateFormat("dd/MM/yyyy")
+                            val finalDate = timeFormat.format(claimDate)
+                            dateStr = finalDate
+                        } catch (e: ParseException) {
+                            e.printStackTrace()
+                        }
+                        contactssViewHolder.txContactTxn.text = contactsModels[position].principleAmount.toString()
+                        contactssViewHolder.txContactName.setText("Pay " + maskEdit.text.toString() + " to " + contactsModels[position].fromName + " on " + dateStr)
+                    } else {
+                        contactssViewHolder.txContactName.setText("Pay " + maskEdit.text.toString() + " to " + contactsModels[position].fromName)
+                    }
                 }
+
 
             }
 
             if (contactsModels[position].settled){
+                contactssViewHolder.btnSettleUp.setBackgroundResource(R.drawable.green_btn_bg)
                 contactssViewHolder.btnSettleUp.setText(context.resources.getString(R.string.settled))
             } else {
                 contactssViewHolder.btnSettleUp.setText(context.resources.getString(R.string.settle_up))
+                contactssViewHolder.btnSettleUp.setBackgroundResource(R.drawable.blue_btn_bg)
             }
 
             contactssViewHolder.btnSettleUp.setOnClickListener {

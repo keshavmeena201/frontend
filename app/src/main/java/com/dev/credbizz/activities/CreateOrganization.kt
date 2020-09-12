@@ -1,28 +1,18 @@
 package com.dev.credbizz.activities
 
-import android.Manifest
 import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
-import androidx.appcompat.app.AppCompatActivity
+import android.graphics.Paint
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
-import androidx.loader.app.LoaderManager
-import androidx.loader.content.Loader
+import androidx.appcompat.app.AppCompatActivity
 import com.dev.credbizz.R
 import com.dev.credbizz.dbHelper.Constants
-import com.dev.credbizz.dbHelper.LoadTables
 import com.dev.credbizz.extras.*
-import com.dev.credbizz.models.ContactModel
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.android.synthetic.main.activity_create_organization.*
-import kotlinx.android.synthetic.main.activity_mobile_verify.*
-import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -54,13 +44,26 @@ class CreateOrganization : AppCompatActivity() {
             sessionManager.orgName = ed_name.text.toString().trim()
             //send req to profile controller
             updateProfile(constant.getorgName(), constant.getMobileNum())
-            val dashboard = Intent(context, Dashboard :: class.java)
+            val dashboard = Intent(context, Dashboard::class.java)
             dashboard.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(dashboard)
         }
+
+        tx_terms.paintFlags = tx_terms.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+        tx_privacy.paintFlags = tx_privacy.paintFlags or Paint.UNDERLINE_TEXT_FLAG
+
+        tx_terms.setOnClickListener {
+            tx_privacy.performClick()
+        }
+
+        tx_privacy.setOnClickListener {
+            val i = Intent(Intent.ACTION_VIEW)
+            i.data = Uri.parse(Keys.privacyUrl)
+            startActivity(i)
+        }
     }
 
-    private fun updateProfile(orgname : String, mobileNum : String){
+    private fun updateProfile(orgname: String, mobileNum: String){
         try {
             if (Utils.isNetworkAvailable(this)){
                 val retrofit: Retrofit = RetrofitExtra.normalInstance
@@ -73,7 +76,7 @@ class CreateOrganization : AppCompatActivity() {
                 Log.e("reqObj", reqObj.toString())
 
                 // API CALL
-                apis.updateProfile(reqObj).enqueue(object : retrofit2.Callback<String>{
+                apis.updateProfile(reqObj).enqueue(object : retrofit2.Callback<String> {
 
                     override fun onResponse(
                         call: Call<String>,
@@ -98,16 +101,16 @@ class CreateOrganization : AppCompatActivity() {
                                     val adapter = gson.getAdapter(JsonObject::class.java)
                                     if (response.errorBody() != null) {
                                         val registerResponse = adapter.fromJson(responseError)
-                                        if (registerResponse.has(Keys.error)){
+                                        if (registerResponse.has(Keys.error)) {
                                             // Utils.showAlertCustom(context, registerResponse.get(Keys.error).asString)
                                         }
                                     }
-                                } catch (e : Exception) {
+                                } catch (e: Exception) {
                                     e.printStackTrace()
                                 }
                             }
 
-                        } catch (e : Exception){
+                        } catch (e: Exception) {
                             e.printStackTrace()
                         }
                     }
@@ -119,7 +122,7 @@ class CreateOrganization : AppCompatActivity() {
             } else {
                 Utils.showAlertCustom(context, resources.getString(R.string.no_network_connected))
             }
-        } catch (e : Exception){
+        } catch (e: Exception){
             e.printStackTrace()
         }
 

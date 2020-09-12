@@ -1,13 +1,11 @@
 package com.dev.credbizz.activities
 
-import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Resources
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
@@ -15,7 +13,6 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextWatcher
@@ -26,10 +23,7 @@ import android.view.Window
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.loader.app.LoaderManager
-import androidx.loader.content.Loader
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.dev.credbizz.R
@@ -44,11 +38,8 @@ import com.google.firebase.dynamiclinks.DynamicLink
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.gson.Gson
 import com.google.gson.JsonObject
-import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_dashboard.*
 import kotlinx.android.synthetic.main.notify_popup.*
-import okhttp3.ResponseBody
-import org.json.JSONObject
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
@@ -93,7 +84,8 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
     // INTEGER
     var settleUpType : Int = 0
-    var type : Int = 0
+    var  type : Int = 0
+    var paymentType : Int = 0
 
     // BUTTON
     lateinit var btnSave : Button
@@ -116,6 +108,9 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
     var transactionList1 : ArrayList<TransactionModel> = ArrayList()
 
+    // DIALOG LOADER
+    lateinit var dialogLoader: DialogLoader
+
 
     // LOAD TABLES
     lateinit var lt: LoadTables
@@ -135,6 +130,9 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
         // INIT SESSION MANAGER
         sessionManager = SessionManager.getInstance(context)!!
+
+        // INIT DIALOG LOADER
+        dialogLoader = DialogLoader(context)
 
         // INIT LOAD TABLES
         //contacts storing
@@ -162,7 +160,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         if(constant.getMobileNum()== "9106729587") {
             Log.e("lol","lol1")
         }
-        getTransactions(sessionManager.mobileNumber!!, this)
+        //getTransactions(sessionManager.mobileNumber!!, this)
 //        Log.e("transactione", constant.getAllTransactons().get(0).fromMobileNumber)
 
         transactionContactsAdapter = TransactionContactsAdapter(context, constant.allTransactons, this)
@@ -196,29 +194,19 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         // NOTIFY POPUP CLICK EVENTS
         iv_close.setOnClickListener {
             ll_notify_popup.visibility = View.GONE
-            finish()
         }
 
-     /*   tx_send_message.setOnClickListener {
-
-            if (type == 0) {
-                createDynamicLink(0, 1)
-            } else if (type == 1) {
-                createDynamicLink(1, 1)
-            }
-
+        tx_send_message.setOnClickListener {
+            createDynamicLink(type, 1, paymentType)
         }
 
         tx_send_whatsapp.setOnClickListener {
-            if (type == 0) {
-                createDynamicLink(0, 2)
-            } else if (type == 1) {
-                createDynamicLink(1, 2)
-            }
+            createDynamicLink(type, 2, paymentType)
+        }
 
-        }*/
-
-
+        btn_refresh.setOnClickListener {
+            onResume()
+        }
     }
 
     override fun onResume() {
@@ -315,7 +303,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
             if (Utils.isNetworkAvailable(this)){
                 val retrofit: Retrofit = RetrofitExtra.instance
                 val apis = retrofit.create(RetrofitService::class.java)
-
+                dialogLoader.showProgressDialog()
                 // REQUEST OBJECT
                 val reqObj = JsonObject()
 
@@ -327,6 +315,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                         call: Call<List<TransactionModel>>,
                         response: Response<List<TransactionModel>>
                     ) {
+                        dialogLoader.hideProgressDialog()
                         try {
                             Log.e("getOtpResp", response.toString())
                             if (response.code() == 200) {
@@ -334,6 +323,8 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
                                 val responseString = response.body().toString()
                                 Log.e("getOtpResp", responseString)
+
+                                Utils.showAlertCustom(context, resources.getString(R.string.transactions_updated))
 
 //                                val gson = Gson()
 //                                val itemType = object : TypeToken<List<TransactionModel>>() {}.type
@@ -468,7 +459,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         dialog.setView(dialogView)
         dialog.setCancelable(true)
 
-        var type : Int = 0
+        var txnT : Int = 0
 
         edAmount = dialogView.findViewById(R.id.ed_amount)
 
@@ -491,13 +482,14 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         val radioButton = rgTransactionType.findViewById(radioButtonID) as RadioButton
         val selectedText = radioButton.text as String
 
-        edAmount.setText(transactionModel.principleAmount.toString())
+        val amount : Int = transactionModel.principleAmount - transactionModel.amountPaid
+        edAmount.setText(amount.toString())
 
         // GENDER SELECT
         rgTransactionType.setOnCheckedChangeListener { radioGroup, i ->
             Utils.hideSoftKeyboard(this@Dashboard)
             if (i == R.id.rb_give) {
-                type = 0
+                txnT = 0
                 transactionModel.settled = true
                 //txAmountHeader.text = "You got " + Keys.rupeeSymbol + "0 from " + contactName
                 //txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.green))
@@ -512,8 +504,9 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                 Utils.setTextViewDrawableColor(context, txAmountDate, R.color.green)
                 Utils.setTextViewDrawableColor(context, txAmountBills, R.color.green)
                 btnSave.setBackgroundResource(R.drawable.green_corner_bg)
+                return@setOnCheckedChangeListener
             } else if (i == R.id.rb_got) {
-                type = 1
+                txnT = 1
                 transactionModel.partial = true
                 //txAmountHeader.text = "You gave " + Keys.rupeeSymbol + "0 to " + contactName
                 //txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.red))
@@ -528,6 +521,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                 Utils.setTextViewDrawableColor(context, txAmountDate, R.color.green)
                 Utils.setTextViewDrawableColor(context, txAmountBills, R.color.green)
                 btnSave.setBackgroundResource(R.drawable.green_corner_bg)
+                return@setOnCheckedChangeListener
             }
         }
 
@@ -559,7 +553,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
             }
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (type == 0) {
+                if (txnT == 0) {
                     // txAmountHeader.text = "You gave " + Keys.rupeeSymbol + " " + p0.toString() + " to " + transactionModel.fromMobileNumber
                 } else {
                     // txAmountHeader.text = "You got " + Keys.rupeeSymbol + " " + p0.toString() + " from " + contactName
@@ -581,16 +575,24 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         }
 
         btnSave.setOnClickListener {
+            type = settleUpType
+            if (txnT == 0){
+                transactionModel.settled = true
+                transactionModel.partial = false
+            } else if (txnT == 1){
+                transactionModel.partial = true
+                transactionModel.settled = false
+            }
+            paymentType = txnT
             selectedNumber = contactNumber
             selectedContact = contactName
-            transactionModel.amountPaid = edAmount.text.toString().trim().replace(",", "").toInt()
-            transactionModel.nextDate = dateString
+            transactionModel.amountPaid =  transactionModel.amountPaid + edAmount.text.toString().trim().replace(",", "").toInt()
+            transactionModel.nextDate = serverDateString
            // val txnDate : String = transactionModel.transactionDate.substring(0, 10)
             transactionModel.transactionDate = null.toString()
             Log.e("txnDate", transactionModel.transactionDate)
             settleUp(transactionModel)
             //send addtransaction request
-            alertDialog.dismiss()
         }
 
 
@@ -668,7 +670,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         try {
             val c = Calendar.getInstance()
             val year = c[Calendar.YEAR]
-            val month = c[Calendar.MONTH]
+            val month = c[Calendar.MONTH]+1
             val day = c[Calendar.DAY_OF_MONTH]
 
             val datePicker: DatePickerDialog = DatePickerDialog(
@@ -924,5 +926,122 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
             e.printStackTrace()
         }
     }
+
+    // CREATE DYNAMIC LINK
+    fun createDynamicLink(txnType : Int, notifyType : Int, paymentType : Int){
+        var shortLink : String = ""
+        FirebaseDynamicLinks.getInstance().createDynamicLink()
+            .setLink(Uri.parse(Keys.dynamicLinkPageUrl))
+            .setDomainUriPrefix(Keys.dynamicLinkPageTransactionLink)
+            .setAndroidParameters(
+                DynamicLink.AndroidParameters.Builder(Keys.applicationId)
+                    .setMinimumVersion(1)
+                    .build())
+            .setIosParameters(
+                DynamicLink.IosParameters.Builder("")
+                    .setAppStoreId("")
+                    .setMinimumVersion("")
+                    .build())
+            .buildShortDynamicLink()
+            .addOnCompleteListener(this) { task ->
+                if (task.isSuccessful) {
+                    shortLink = task.result.shortLink.toString()
+                    if (notifyType == 1) {
+                        if (txnType == 0) {
+                            val smsIntent = Intent(Intent.ACTION_VIEW)
+                            if (paymentType == 0){
+                                smsIntent.putExtra("sms_body", "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has received entire amount of " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " and settled the transaction on Credbizz."
+                                       /* + txAmountDate.text.toString().trim() + */  + " Click on the below link to check the impact on your Credbizz Score \n" + shortLink)
+                            } else {
+                                smsIntent.putExtra("sms_body", "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has received partial amount of " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " and settled the transaction on Credbizz."
+                                        /* + txAmountDate.text.toString().trim() + */  + " Click on the below link to check the impact on your Credbizz Score \n" + shortLink)
+                            }
+                            smsIntent.data = Uri.parse("sms:"+selectedNumber)
+                            startActivity(smsIntent)
+                        } else if (txnType == 1) {
+                            val smsIntent = Intent(Intent.ACTION_VIEW)
+                            if (paymentType == 0){
+                                smsIntent.putExtra("sms_body", "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has paid entire amount of " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " and settled the transaction on Credbizz."
+                                        /* + txAmountDate.text.toString().trim() + */  + " Click on the below link to check the impact on your Credbizz Score \n" + shortLink)
+                            } else {
+                                smsIntent.putExtra("sms_body", "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has paid partial amount of " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " and settled the transaction on Credbizz."
+                                        /* + txAmountDate.text.toString().trim() + */  + " Click on the below link to check the impact on your Credbizz Score \n" + shortLink)
+                            }
+                            smsIntent.data = Uri.parse("sms:"+selectedNumber)
+                            startActivity(smsIntent)
+                        }
+                    } else if (notifyType == 2) {
+                        var contact =  "" // use country code with your phone number
+                        var contactNum = selectedNumber.toString().trim()
+                        if (contactNum.startsWith("+91")){
+                            contact = contactNum
+                        } else if (contactNum.length == 10) {
+                            contact = "+91 " + contactNum
+                        }
+                        if (txnType == 0) {
+                            var message : String = ""
+                            if (paymentType == 0){
+                                 message  = "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has received entire amount of " + Keys.rupeeSymbol + edAmount.text.toString().trim() +
+                                         " and settled the transaction on Credbizz."/* + txAmountDate.text.toString().trim() + */  + " Click on the below link to check the impact on your Credbizz Score \n" + shortLink
+                            } else {
+                                 message  = "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has received partial amount of " + Keys.rupeeSymbol + edAmount.text.toString().trim() +
+                                         " and settled the transaction on Credbizz."/* + txAmountDate.text.toString().trim() + */  + " Click on the below link to check the impact on your Credbizz Score \n" + shortLink
+                            }
+
+
+                            val url = "https://api.whatsapp.com/send?phone=$contact&text=$message"
+                            try {
+                                val pm = context.packageManager
+                                pm.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES)
+                                val i = Intent(Intent.ACTION_VIEW)
+                                i.data = Uri.parse(url)
+                                context.startActivity(i)
+                            } catch (e: PackageManager.NameNotFoundException) {
+                                Toast.makeText(
+                                    context,
+                                    "Whatsapp app not installed in your phone",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                e.printStackTrace()
+                            }
+                        } else if (txnType == 1) {
+                            var message : String = ""
+                            if (paymentType == 0){
+                                message  = "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has paid entire amount of " + Keys.rupeeSymbol + edAmount.text.toString().trim() +
+                                        " and settled the transaction on Credbizz."/* + txAmountDate.text.toString().trim() + */  + " Click on the below link to check the impact on your Credbizz Score \n" + shortLink
+                            } else {
+                                message  = "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has paid partial amount of " + Keys.rupeeSymbol + edAmount.text.toString().trim() +
+                                        " and settled the transaction on Credbizz."/* + txAmountDate.text.toString().trim() + */  + " Click on the below link to check the impact on your Credbizz Score \n" + shortLink
+                            }
+
+
+                            val url =
+                                "https://api.whatsapp.com/send?phone=$contact&text=$message"
+                            try {
+                                val pm = context.packageManager
+                                pm.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES)
+                                val i = Intent(Intent.ACTION_VIEW)
+                                i.data = Uri.parse(url)
+                                context.startActivity(i)
+                            } catch (e: PackageManager.NameNotFoundException) {
+                                Toast.makeText(
+                                    context,
+                                    "Whatsapp app not installed in your phone",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                    ll_notify_popup.visibility = View.GONE
+                }
+            }.addOnFailureListener {
+                Log.d("AAA", "test1 fail")
+                it.printStackTrace()
+            }
+
+
+    }
+
 
 }

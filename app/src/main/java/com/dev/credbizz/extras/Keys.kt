@@ -5,6 +5,7 @@ interface Keys {
 
         const val DBVERSION: Int = 1
         // Please change your ip address here for testing
+        const val privacyUrl : String = "https://credbizz.com/privacy-policy/"
         const val BASEURL : String = "https://upbeat-palace-288813.el.r.appspot.com/"
         const val authorization : String = "authorization"
         const val tbl_contacts : String = "tbl_contacts"

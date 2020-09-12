@@ -35,7 +35,8 @@
         android:src="@drawable/ic_launcher"
         android:layout_toEndOf="@+id/rel_bg"
         android:layout_alignBottom="@+id/rel_bg"
-        android:layout_marginStart="-12dp"/>
+        android:layout_marginStart="-12dp"
+        android:visibility="gone"/>
 
 
 </RelativeLayout>

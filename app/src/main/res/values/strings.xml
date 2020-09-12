@@ -73,6 +73,12 @@
     <string name="larger_txn">Larger the transaction amount more the impact on score</string>
     <string name="keep_clean">Keep your past records clean</string>
     <string name="settled">Settled</string>
-    <string name="settled_txn">You setlled this transaction!</string>
+    <string name="settled_txn">You settled this transaction!</string>
     <string name="txn_setlled">Transaction settled!</string>
+    <string name="by_continue">By continuing, you agree to our</string>
+    <string name="terns_of_service">Terms of service</string>
+    <string name="and">and</string>
+    <string name="privacy_policy">Privacy Policy</string>
+    <string name="refresh_transactions">Refresh Transactions</string>
+    <string name="transactions_updated">Transactions updated!</string>
 </resources>
