@@ -111,6 +111,9 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
     // DIALOG LOADER
     lateinit var dialogLoader: DialogLoader
 
+    // BOOLEAN
+    var isRefresh : Boolean = false
+
 
     // LOAD TABLES
     lateinit var lt: LoadTables
@@ -205,6 +208,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         }
 
         btn_refresh.setOnClickListener {
+            isRefresh = true
             onResume()
         }
     }
@@ -303,7 +307,10 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
             if (Utils.isNetworkAvailable(this)){
                 val retrofit: Retrofit = RetrofitExtra.instance
                 val apis = retrofit.create(RetrofitService::class.java)
-                dialogLoader.showProgressDialog()
+                if (isRefresh) {
+                    dialogLoader.showProgressDialog()
+                    isRefresh = false
+                }
                 // REQUEST OBJECT
                 val reqObj = JsonObject()
 
