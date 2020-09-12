@@ -291,7 +291,7 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
                     val constant = Constants()
 
                     verifyOtp(string, constant.mobileNum)
-                    constant.settime()
+                   // constant.settime()
 
 //                    val createOrg = Intent(context, CreateOrganization :: class.java)
 //                    createOrg.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

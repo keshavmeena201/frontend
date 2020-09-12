@@ -13,6 +13,8 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.text.Editable
@@ -44,7 +46,7 @@ import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.google.gson.reflect.TypeToken
 import kotlinx.android.synthetic.main.activity_dashboard.*
-import kotlinx.android.synthetic.main.activity_mobile_verify.*
+import kotlinx.android.synthetic.main.notify_popup.*
 import okhttp3.ResponseBody
 import org.json.JSONObject
 import retrofit2.Call
@@ -63,9 +65,13 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
     private var selectedDob: String = ""
     var selectedImagePath : String = ""
+    var serverDateString : String = ""
+    var selectedContact : String = ""
+    var selectedNumber : String = ""
 
     // LINEAR LAYOUT
     lateinit var llNotify : LinearLayout
+    lateinit var llTxnSettled : LinearLayout
 
     // EDIT TEXT
     lateinit var edAmount : EditText
@@ -84,6 +90,10 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
     // CHECK BOX
     lateinit var cbNotify : CheckBox
+
+    // INTEGER
+    var settleUpType : Int = 0
+    var type : Int = 0
 
     // BUTTON
     lateinit var btnSave : Button
@@ -181,6 +191,32 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         tx_company_name.setOnClickListener {
             showEditNamePopup()
         }
+
+
+        // NOTIFY POPUP CLICK EVENTS
+        iv_close.setOnClickListener {
+            ll_notify_popup.visibility = View.GONE
+            finish()
+        }
+
+     /*   tx_send_message.setOnClickListener {
+
+            if (type == 0) {
+                createDynamicLink(0, 1)
+            } else if (type == 1) {
+                createDynamicLink(1, 1)
+            }
+
+        }
+
+        tx_send_whatsapp.setOnClickListener {
+            if (type == 0) {
+                createDynamicLink(0, 2)
+            } else if (type == 1) {
+                createDynamicLink(1, 2)
+            }
+
+        }*/
 
 
     }
@@ -413,11 +449,16 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
     }
 
     override fun onSettleUpSelect(pos: Int) {
-        showAlertCustom(context, transactionList1[pos])
+        if (transactionList1[pos].fromMobileNumber == sessionManager.mobileNumber){
+            showAlertCustom(context, transactionList1[pos], transactionList1[pos].toMobileNumber, transactionList1[pos].toName,0)
+        } else {
+            showAlertCustom(context, transactionList1[pos], transactionList1[pos].fromMobileNumber, transactionList1[pos].fromName,  1)
+        }
+
     }
     // SHOW PAYMENT POPUP
     @SuppressLint("SetTextI18n")
-    fun showAlertCustom(context: Context, transactionModel: TransactionModel) {
+    fun showAlertCustom(context: Context, transactionModel: TransactionModel,  contactNumber: String, contactName :String, settleUpType : Int) {
 
         dialog = AlertDialog.Builder(context)
         val dialogView: View = LayoutInflater.from(context).inflate(
@@ -432,6 +473,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         edAmount = dialogView.findViewById(R.id.ed_amount)
 
         llNotify = dialogView.findViewById(R.id.ll_notify)
+        llTxnSettled = dialogView.findViewById(R.id.ll_txn_settled)
 
         //txAmountHeader = dialogView.findViewById(R.id.tx_payment_status)
         txAmountDate = dialogView.findViewById(R.id.tx_payment_date)
@@ -491,7 +533,12 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
         //txAmountHeader.text = "You gave " + Keys.rupeeSymbol + "0 to " + contactName
 
-        val dateString: String = SimpleDateFormat("yyyy-MM-dd").format(Date())
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.MONTH, 1)
+        val date = Date(cal.timeInMillis)
+        val dateString: String = SimpleDateFormat("dd MMM yy").format(date)
+        val serverDate: String = SimpleDateFormat("yyyy-MM-dd").format(date)
+        serverDateString = serverDate
         txAmountDate.text = dateString
 
         cbNotify.text = resources.getString(R.string.notify_text) + " " + transactionModel.fromMobileNumber
@@ -513,8 +560,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                 if (type == 0) {
-                    // txAmountHeader.text =
-                    "You gave " + Keys.rupeeSymbol + " " + p0.toString() + " to " + transactionModel.fromMobileNumber
+                    // txAmountHeader.text = "You gave " + Keys.rupeeSymbol + " " + p0.toString() + " to " + transactionModel.fromMobileNumber
                 } else {
                     // txAmountHeader.text = "You got " + Keys.rupeeSymbol + " " + p0.toString() + " from " + contactName
                 }
@@ -535,6 +581,8 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         }
 
         btnSave.setOnClickListener {
+            selectedNumber = contactNumber
+            selectedContact = contactName
             transactionModel.amountPaid = edAmount.text.toString().trim().replace(",", "").toInt()
             transactionModel.nextDate = dateString
            // val txnDate : String = transactionModel.transactionDate.substring(0, 10)
@@ -572,7 +620,13 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                             if (response.code() == 200) {
                                 Log.e("reqObj", response.raw().toString())
 
+                                llTxnSettled.visibility = View.VISIBLE
 
+                                tx_notify_user.text = resources.getString(R.string.notify_label) + " " + selectedContact + "?"
+                                Handler(Looper.myLooper()!!).postDelayed(Runnable {
+                                    alertDialog.dismiss()
+                                    ll_notify_popup.visibility = View.VISIBLE
+                                }, 1000)
                             } else {
                                 try {
                                     val responseError = response.errorBody()?.string()

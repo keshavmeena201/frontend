@@ -22,6 +22,7 @@ import com.dev.credbizz.dbHelper.Constants
 import com.dev.credbizz.extras.EasyMoneyEditText
 import com.dev.credbizz.extras.Keys
 import com.dev.credbizz.extras.SessionManager
+import com.dev.credbizz.extras.Utils
 import com.dev.credbizz.models.TransactionModel
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -145,8 +146,7 @@ class TransactionContactsAdapter(
                     } catch (e: ParseException) {
                         e.printStackTrace()
                     }
-                    contactssViewHolder.txContactTxn.text =
-                        contactsModels[position].principleAmount.toString()
+                    contactssViewHolder.txContactTxn.text = contactsModels[position].principleAmount.toString()
                     contactssViewHolder.txContactName.setText("Pay " + maskEdit.text.toString() + " to " + contactsModels[position].fromName + " on " + dateStr)
                 } else {
                     contactssViewHolder.txContactName.setText("Pay " + maskEdit.text.toString() + " to " + contactsModels[position].fromName)
@@ -154,8 +154,18 @@ class TransactionContactsAdapter(
 
             }
 
+            if (contactsModels[position].settled){
+                contactssViewHolder.btnSettleUp.setText(context.resources.getString(R.string.settled))
+            } else {
+                contactssViewHolder.btnSettleUp.setText(context.resources.getString(R.string.settle_up))
+            }
+
             contactssViewHolder.btnSettleUp.setOnClickListener {
-                onContactSelectListener.onSettleUpSelect(position)
+                if (!contactsModels[position].settled) {
+                    onContactSelectListener.onSettleUpSelect(position)
+                } else {
+                    Utils.showAlertCustom(context, context.resources.getString(R.string.settled_txn))
+                }
             }
         }
 

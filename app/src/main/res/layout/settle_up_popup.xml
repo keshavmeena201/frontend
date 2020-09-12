@@ -306,6 +306,9 @@
             android:padding="@dimen/_12sdp" />
 
 
+        <include layout="@layout/txn_settled"/>
+
+
     </LinearLayout>
 
 </androidx.cardview.widget.CardView>

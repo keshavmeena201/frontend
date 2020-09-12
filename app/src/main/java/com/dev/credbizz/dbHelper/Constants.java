@@ -22,7 +22,7 @@ public class Constants {
      private static String mobileNum = "";
      private static String orgname = "";
      private static ArrayList<TransactionModel>  transactionModelList= new ArrayList();
-     private static LocalDateTime localDateTime = LocalDateTime.now();
+    //  private static LocalDateTime localDateTime = LocalDateTime.now();
 
      private static boolean isfirst = true;
 
@@ -55,7 +55,7 @@ public class Constants {
          return transactionModelList;
      }
 
-     public void settime() {
+   /*  public void settime() {
          localDateTime =LocalDateTime.now();
      }
 
@@ -70,7 +70,7 @@ public class Constants {
          }
          return false;
      }
-
+*/
      public void setfirst(){
          Constants.isfirst = false;
      }

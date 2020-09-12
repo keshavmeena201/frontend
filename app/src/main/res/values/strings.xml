@@ -72,4 +72,7 @@
     <string name="make_payment">Make timely payments</string>
     <string name="larger_txn">Larger the transaction amount more the impact on score</string>
     <string name="keep_clean">Keep your past records clean</string>
+    <string name="settled">Settled</string>
+    <string name="settled_txn">You setlled this transaction!</string>
+    <string name="txn_setlled">Transaction settled!</string>
 </resources>

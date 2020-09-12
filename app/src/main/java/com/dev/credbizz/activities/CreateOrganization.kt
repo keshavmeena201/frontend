@@ -29,8 +29,6 @@ import retrofit2.Retrofit
 
 class CreateOrganization : AppCompatActivity() {
 
-
-
     // SESSION MANAGER
     lateinit var sessionManager: SessionManager
 
@@ -60,10 +58,6 @@ class CreateOrganization : AppCompatActivity() {
             dashboard.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(dashboard)
         }
-
-
-
-
     }
 
     private fun updateProfile(orgname : String, mobileNum : String){

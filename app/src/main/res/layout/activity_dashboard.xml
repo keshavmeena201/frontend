@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -8,330 +8,341 @@
     android:background="@color/bg_black"
     tools:context=".activities.Dashboard">
 
+
+
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical">
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginStart="@dimen/_4sdp"
-            android:layout_marginEnd="@dimen/_4sdp"
-            android:layout_marginTop="@dimen/_8sdp"
-            android:layout_marginBottom="@dimen/_8sdp">
-
-            <TextView
-                android:id="@+id/tx_company_name"
-                android:layout_width="wrap_content"
-                android:layout_height="40dp"
-                android:text="Name"
-                android:gravity="center"
-                android:fontFamily="@font/montserrat_regular"
-                android:textColor="@color/white"
-                android:background="@drawable/blue_btn_bg"
-                android:textSize="@dimen/_10sdp"
-                android:lines="1"
-                android:ellipsize="end"
-                android:paddingStart="@dimen/_8sdp"
-                android:paddingEnd="@dimen/_8sdp"
-                android:paddingTop="@dimen/_6sdp"
-                android:paddingBottom="@dimen/_6sdp"
-                android:layout_alignParentStart="true"
-                />
-
-
-            <TextView
-                android:id="@+id/tx_improve_score"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="end"
-                android:textColor="@color/white"
-                android:text="@string/improve_score"
-                android:drawablePadding="@dimen/_4sdp"
-                android:drawableLeft="@drawable/ic_info"
-                android:layout_marginStart="@dimen/_4sdp"
-                android:padding="@dimen/_6sdp"
-                android:gravity="center"
-                android:fontFamily="@font/montserrat_regular"
-                android:layout_alignParentEnd="true"
-                />
-
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/rel_score"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:layout_gravity="center"
-            android:layout_marginTop="-16dp"
-            android:layout_centerHorizontal="true">
-            
-
-
-
-
-            <com.dev.credbizz.extras.CircularProgressIndicator
-                android:id="@+id/circular_progress"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                android:layout_gravity="center"
-                android:layout_marginBottom="8dp"
-                app:direction="clockwise"
-                app:dotColor="?colorPrimary"
-                app:startAngle="120"
-                app:drawDot="true"
-                app:dotWidth="2dp"
-                app:textSize="@dimen/_24sdp"
-                app:progressStrokeWidth="4dp"
-                app:progressBackgroundStrokeWidth="4dp"
-                app:enableProgressAnimation="true"
-                android:layout_centerInParent="true" />
-
-            <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
-                android:src="@drawable/max_limit"
-                app:tint="@color/colorPrimary"
-                android:layout_toEndOf="@+id/circular_progress"
-                android:layout_marginStart="-35dp"
-                android:layout_marginBottom="8dp"
-                android:layout_alignBottom="@+id/circular_progress"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/montserrat_regular"
-                android:text="300"
-                android:textColor="@color/white"
-                android:textSize="@dimen/_10sdp"
-                android:layout_alignBottom="@+id/circular_progress"
-                android:layout_toStartOf="@+id/circular_progress"
-                android:layout_marginTop="@dimen/_8sdp"/>
-
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/montserrat_regular"
-                android:text="850"
-                android:textColor="@color/white"
-                android:textSize="@dimen/_10sdp"
-                android:layout_alignBottom="@+id/circular_progress"
-                android:layout_toEndOf="@+id/circular_progress"
-                android:layout_marginTop="@dimen/_8sdp"/>
-
-
-
-        </RelativeLayout>
-
-
-
-
-        <Button
-            android:id="@+id/btn_refresh"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="@string/refresh_score"
-            android:background="@drawable/blue_btn_bg"
-            android:textColor="@color/white"
-            android:fontFamily="@font/montserrat_regular"
-            android:layout_gravity="center"
-            android:gravity="center"
-            android:layout_marginTop="@dimen/_16sdp"
-            android:layout_marginStart="@dimen/_16sdp"
-            android:layout_marginEnd="@dimen/_16sdp"
-            android:padding="@dimen/_8sdp"
-            android:textAllCaps="false" />
-
-        <TextView
-            android:id="@+id/tx_last_update"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="@font/montserrat_regular"
-            android:text="@string/last_updated"
-            android:textColor="@color/white"
-            android:textSize="@dimen/_9sdp"
-            android:layout_marginTop="@dimen/_6sdp"
-            android:layout_gravity="center"/>
-
-
-
-        <TextView
-            android:id="@+id/tx_refer_friend"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_share"
-            android:text="@string/refer_a_friend"
-            android:textColor="@color/white"
-            android:drawableStart="@drawable/ic_share"
-            android:drawablePadding="@dimen/_4sdp"
-            android:layout_marginStart="@dimen/_4sdp"
-            android:padding="@dimen/_6sdp"
-            android:gravity="center"
-            android:layout_gravity="end"
-            android:fontFamily="@font/montserrat_regular"
-            android:layout_marginEnd="@dimen/_4sdp"
-            android:layout_marginRight="@dimen/_4sdp"/>
-
-
-    </LinearLayout>
-
-
-
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:orientation="vertical"
-    android:layout_marginTop="@dimen/_8sdp"
-    android:layout_weight="1">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:orientation="vertical"
-        android:layout_weight="1"
-        >
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="?actionBarSize"
-            android:background="@color/bg_black"
-            android:visibility="visible"
-            android:paddingStart="@dimen/_8sdp"
-            android:paddingEnd="@dimen/_8sdp">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
             <RelativeLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:id="@+id/rel_gave"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:layout_weight="1">
-
-                <TextView
-                    android:id="@+id/tx_get"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:text="@string/you_will_get"
-                    android:textColor="@color/white"
-                    android:fontFamily="@font/montserrat_regular"/>
-
-                <TextView
-                    android:id="@+id/tx_get_txn"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:textColor="@color/green"
-                    android:drawableStart="@drawable/ic_get"
-                    android:drawablePadding="@dimen/_2sdp"
-                    android:layout_marginStart="@dimen/_2sdp"
-                    android:gravity="center"
-                    android:layout_toEndOf="@+id/tx_get"
-                    android:fontFamily="@font/montserrat_regular"/>
-
-
-
-
-            </RelativeLayout>
-            <View
-
-                android:layout_width="1dp"
-                android:layout_height="match_parent"
-                android:background="@color/white"
-                android:layout_marginTop="@dimen/_4sdp"
-                android:layout_marginBottom="@dimen/_4sdp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:layout_marginStart="@dimen/_4sdp"
                 android:layout_marginEnd="@dimen/_4sdp"
-                android:layout_alignParentBottom="true" />
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp">
+
+                <TextView
+                    android:id="@+id/tx_company_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="Name"
+                    android:gravity="center"
+                    android:fontFamily="@font/montserrat_regular"
+                    android:textColor="@color/white"
+                    android:background="@drawable/blue_btn_bg"
+                    android:textSize="@dimen/_10sdp"
+                    android:lines="1"
+                    android:ellipsize="end"
+                    android:paddingStart="@dimen/_8sdp"
+                    android:paddingEnd="@dimen/_8sdp"
+                    android:paddingTop="@dimen/_6sdp"
+                    android:paddingBottom="@dimen/_6sdp"
+                    android:layout_alignParentStart="true"
+                    />
+
+
+                <TextView
+                    android:id="@+id/tx_improve_score"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:textColor="@color/white"
+                    android:text="@string/improve_score"
+                    android:drawablePadding="@dimen/_4sdp"
+                    android:drawableLeft="@drawable/ic_info"
+                    android:layout_marginStart="@dimen/_4sdp"
+                    android:padding="@dimen/_6sdp"
+                    android:gravity="center"
+                    android:fontFamily="@font/montserrat_regular"
+                    android:layout_alignParentEnd="true"
+                    />
+
+
+            </RelativeLayout>
 
             <RelativeLayout
-                android:id="@+id/rel_got"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:gravity="center"
-                android:layout_weight="1">
+                android:id="@+id/rel_score"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_gravity="center"
+                android:layout_marginTop="-16dp"
+                android:layout_centerHorizontal="true">
 
+
+
+
+
+                <com.dev.credbizz.extras.CircularProgressIndicator
+                    android:id="@+id/circular_progress"
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_gravity="center"
+                    android:layout_marginBottom="8dp"
+                    app:direction="clockwise"
+                    app:dotColor="?colorPrimary"
+                    app:startAngle="120"
+                    app:drawDot="true"
+                    app:dotWidth="2dp"
+                    app:textSize="@dimen/_24sdp"
+                    app:progressStrokeWidth="4dp"
+                    app:progressBackgroundStrokeWidth="4dp"
+                    app:enableProgressAnimation="true"
+                    android:layout_centerInParent="true" />
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@drawable/max_limit"
+                    app:tint="@color/colorPrimary"
+                    android:layout_toEndOf="@+id/circular_progress"
+                    android:layout_marginStart="-35dp"
+                    android:layout_marginBottom="8dp"
+                    android:layout_alignBottom="@+id/circular_progress"/>
 
                 <TextView
-                    android:id="@+id/tx_give"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:text="@string/you_will_give"
+                    android:fontFamily="@font/montserrat_regular"
+                    android:text="300"
                     android:textColor="@color/white"
-                    android:fontFamily="@font/montserrat_regular"/>
+                    android:textSize="@dimen/_10sdp"
+                    android:layout_alignBottom="@+id/circular_progress"
+                    android:layout_toStartOf="@+id/circular_progress"
+                    android:layout_marginTop="@dimen/_8sdp"/>
+
 
                 <TextView
-                    android:id="@+id/tx_give_txn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerVertical="true"
-                    android:textColor="@color/red"
-                    android:drawableStart="@drawable/ic_give"
-                    android:drawablePadding="@dimen/_2sdp"
-                    android:layout_marginStart="@dimen/_2sdp"
-                    android:layout_toEndOf="@+id/tx_give"
-                    android:fontFamily="@font/montserrat_regular"/>
+                    android:fontFamily="@font/montserrat_regular"
+                    android:text="850"
+                    android:textColor="@color/white"
+                    android:textSize="@dimen/_10sdp"
+                    android:layout_alignBottom="@+id/circular_progress"
+                    android:layout_toEndOf="@+id/circular_progress"
+                    android:layout_marginTop="@dimen/_8sdp"/>
 
 
 
             </RelativeLayout>
+
+
+
+
+            <Button
+                android:id="@+id/btn_refresh"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:text="@string/refresh_score"
+                android:background="@drawable/blue_btn_bg"
+                android:textColor="@color/white"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:layout_marginTop="@dimen/_16sdp"
+                android:layout_marginStart="@dimen/_16sdp"
+                android:layout_marginEnd="@dimen/_16sdp"
+                android:padding="@dimen/_8sdp"
+                android:textAllCaps="false" />
+
+            <TextView
+                android:id="@+id/tx_last_update"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/montserrat_regular"
+                android:text="@string/last_updated"
+                android:textColor="@color/white"
+                android:textSize="@dimen/_9sdp"
+                android:layout_marginTop="@dimen/_6sdp"
+                android:layout_gravity="center"/>
+
+
+
+            <TextView
+                android:id="@+id/tx_refer_friend"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_share"
+                android:text="@string/refer_a_friend"
+                android:textColor="@color/white"
+                android:drawableStart="@drawable/ic_share"
+                android:drawablePadding="@dimen/_4sdp"
+                android:layout_marginStart="@dimen/_4sdp"
+                android:padding="@dimen/_6sdp"
+                android:gravity="center"
+                android:layout_gravity="end"
+                android:fontFamily="@font/montserrat_regular"
+                android:layout_marginEnd="@dimen/_4sdp"
+                android:layout_marginRight="@dimen/_4sdp"/>
+
 
         </LinearLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="0.5dp"
-            android:background="@color/white"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rec_transaction_details"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/bg_black"
-            android:nestedScrollingEnabled="true"/>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:orientation="vertical"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:orientation="vertical"
+                android:layout_weight="1"
+                >
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="?actionBarSize"
+                    android:background="@color/bg_black"
+                    android:visibility="visible"
+                    android:paddingStart="@dimen/_8sdp"
+                    android:paddingEnd="@dimen/_8sdp">
+
+                    <RelativeLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:id="@+id/rel_gave"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:layout_weight="1">
+
+                        <TextView
+                            android:id="@+id/tx_get"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/you_will_get"
+                            android:textColor="@color/white"
+                            android:fontFamily="@font/montserrat_regular"/>
+
+                        <TextView
+                            android:id="@+id/tx_get_txn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:textColor="@color/green"
+                            android:drawableStart="@drawable/ic_get"
+                            android:drawablePadding="@dimen/_2sdp"
+                            android:layout_marginStart="@dimen/_2sdp"
+                            android:gravity="center"
+                            android:layout_toEndOf="@+id/tx_get"
+                            android:fontFamily="@font/montserrat_regular"/>
+
+
+
+
+                    </RelativeLayout>
+                    <View
+
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:background="@color/white"
+                        android:layout_marginTop="@dimen/_4sdp"
+                        android:layout_marginBottom="@dimen/_4sdp"
+                        android:layout_marginStart="@dimen/_4sdp"
+                        android:layout_marginEnd="@dimen/_4sdp"
+                        android:layout_alignParentBottom="true" />
+
+                    <RelativeLayout
+                        android:id="@+id/rel_got"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:layout_weight="1">
+
+
+                        <TextView
+                            android:id="@+id/tx_give"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="@string/you_will_give"
+                            android:textColor="@color/white"
+                            android:fontFamily="@font/montserrat_regular"/>
+
+                        <TextView
+                            android:id="@+id/tx_give_txn"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:textColor="@color/red"
+                            android:drawableStart="@drawable/ic_give"
+                            android:drawablePadding="@dimen/_2sdp"
+                            android:layout_marginStart="@dimen/_2sdp"
+                            android:layout_toEndOf="@+id/tx_give"
+                            android:fontFamily="@font/montserrat_regular"/>
+
+
+
+                    </RelativeLayout>
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0.5dp"
+                    android:background="@color/white"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rec_transaction_details"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/bg_black"
+                    android:nestedScrollingEnabled="true"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:gravity="center"
+                android:background="@color/bg_black"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp">
+
+                <Button
+                    android:id="@+id/btn_add_payment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:text="@string/add_payment"
+                    android:background="@drawable/blue_btn_bg"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/montserrat_regular"
+                    android:layout_gravity="center"
+                    android:drawableStart="@drawable/ic_add"
+                    android:drawablePadding="@dimen/_4sdp"
+                    android:paddingStart="@dimen/_34sdp"
+                    android:paddingEnd="@dimen/_34sdp"
+                    android:gravity="center"
+                    android:layout_marginStart="@dimen/_16sdp"
+                    android:layout_marginEnd="@dimen/_16sdp"
+                    android:padding="@dimen/_8sdp"
+                    android:textAllCaps="false" />
+
+
+            </LinearLayout>
+
+
+        </LinearLayout>
     </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:gravity="center"
-        android:background="@color/bg_black"
-        android:layout_marginTop="@dimen/_8sdp"
-        android:layout_marginBottom="@dimen/_8sdp">
-
-        <Button
-            android:id="@+id/btn_add_payment"
-            android:layout_width="wrap_content"
-            android:layout_height="40dp"
-            android:text="@string/add_payment"
-            android:background="@drawable/blue_btn_bg"
-            android:textColor="@color/white"
-            android:fontFamily="@font/montserrat_regular"
-            android:layout_gravity="center"
-            android:drawableStart="@drawable/ic_add"
-            android:drawablePadding="@dimen/_4sdp"
-            android:paddingStart="@dimen/_34sdp"
-            android:paddingEnd="@dimen/_34sdp"
-            android:gravity="center"
-            android:layout_marginStart="@dimen/_16sdp"
-            android:layout_marginEnd="@dimen/_16sdp"
-            android:padding="@dimen/_8sdp"
-            android:textAllCaps="false" />
 
 
-    </LinearLayout>
+    <include layout="@layout/notify_popup" />
 
 
-</LinearLayout>
-
-
-
-</LinearLayout>
+</FrameLayout>

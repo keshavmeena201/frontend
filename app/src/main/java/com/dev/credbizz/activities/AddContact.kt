@@ -591,7 +591,6 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                 reqObj.addProperty("fromName", contactName)
                 reqObj.addProperty("toName", sessionManager.orgName)
                 reqObj.addProperty("transactionType", false)
-
                 type = 1
             }
             reqObj.addProperty("transactionDueDate", serverDateString.toString())
@@ -978,12 +977,12 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                     if (notifyType == 1) {
                         if (txnType == 0) {
                             val smsIntent = Intent(Intent.ACTION_VIEW)
-                            smsIntent.putExtra("sms_body", "You have lent "+ selectedContact + " " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " and he/she will paying it back on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink)
+                            smsIntent.putExtra("sms_body", "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has lent you " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " please pay back the amount on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink)
                             smsIntent.data = Uri.parse("sms:"+selectedNumber)
                             startActivity(smsIntent)
                         } else if (txnType == 1) {
                             val smsIntent = Intent(Intent.ACTION_VIEW)
-                            smsIntent.putExtra("sms_body", selectedContact + " has given you " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " on credit. Kindly repay the amount on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink)
+                            smsIntent.putExtra("sms_body", "Hey!! You have given " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " on credit to "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" + ", please collect amount on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink)
                             smsIntent.data = Uri.parse("sms:"+selectedNumber)
                             startActivity(smsIntent)
                         }
@@ -996,7 +995,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                             contact = "+91 " + contactNum
                         }
                         if (txnType == 0) {
-                            val message : String = "You have lent "+ selectedContact + " " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " and he/she will paying it back on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink
+                            val message : String = "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")"+ " has lent you " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " please pay back the amount on "  + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink
 
                             val url = "https://api.whatsapp.com/send?phone=$contact&text=$message"
                             try {
@@ -1014,7 +1013,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                                 e.printStackTrace()
                             }
                         } else if (txnType == 1) {
-                            val message : String = selectedContact + " has given you " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " on credit. Kindly repay the amount on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink
+                            val message : String = "Hey!! You have given " + Keys.rupeeSymbol + edAmount.text.toString().trim() +  " on credit to "+ sessionManager.orgName+ "(" + sessionManager.mobileNumber + ")" + ", please collect amount on " + txAmountDate.text.toString().trim() +  " and click on this link to know more: " + shortLink
 
                             val url =
                                 "https://api.whatsapp.com/send?phone=$contact&text=$message"
