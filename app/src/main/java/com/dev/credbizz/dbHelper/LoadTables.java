@@ -13,39 +13,32 @@ public class LoadTables {
     public LoadTables(Context context)
     {
         db = dbhelper.getInstance(context);
-
     }
     private static dbhelper db;
     public Context context;
 
     static final LinkedHashMap<String, String> fields = new LinkedHashMap<>();
-    public void LoadAllTables(Context context) {
 
+    public void LoadAllTables(Context context) {
         db = dbhelper.getInstance(context);
         this.context = context;
         init();
-
     }
+
     public void init() {
-
         try {
-
             initUser();
-
         } catch (SQLException e) {
             e.printStackTrace();
 			/*AlertDialogManager.showAlertDialog(context, "Database Error",
 					"Database Error Occured");*/
         }
-
     }
 
 
-    public void initUser()
-    {
+    public void initUser() {
         saveContacts();
         CreateTable(Keys.tbl_contacts,"");
-
     }
 
     public static LinkedHashMap<String, String> saveContacts() {
@@ -61,38 +54,23 @@ public class LoadTables {
         fields.put(Keys.transaction_type, "INTEGER");
         return fields;
     }
-
-
-
-
     private void CreateTable(String $tablename, String primarykey) {
         String sql = dbhelper.createTable($tablename, fields, primarykey);
         dbhelper.executeSql(sql);
     }
-
-
-    public void getDeleteLikes(String tablename)
-    {
+    public void getDeleteLikes(String tablename) {
         dbhelper.executeSql("delete from "+tablename+" where userid=1");
     }
-
-    public void insertData(String tablename, String primarykey, List<String> lst, LinkedHashMap<String, String> fields)
-    {
+    public void insertData(String tablename, String primarykey, List<String> lst, LinkedHashMap<String, String> fields) {
         dbhelper.insertTable(tablename,fields,primarykey,lst);
     }
-
-    public static void deleteTable(String tablename)
-    {
+    public static void deleteTable(String tablename) {
         dbhelper.executeSql("delete from "+tablename);
         //ShowToast.Show(""+trues);
     }
-    public void deleteTable(String tablename, String where, String wherepara)
-    {
+    public void deleteTable(String tablename, String where, String wherepara) {
         dbhelper.executeSql("delete from "+tablename+ " where "+where+" = "+wherepara);
     }
-
-
-
     public void execSql(String qry)
     {
         dbhelper.executeSql(qry);
@@ -100,20 +78,14 @@ public class LoadTables {
     public static ArrayList<String[]> getData(String tablename) {
         return db.getData(tablename);
     }
-
     public static ArrayList<String[]> getDatabyqry(String qry) {
         return db.getDatabyqry(qry);
     }
-
-    public static int getCount(String tablename, String Where, String paraWhere)
-    {
+    public static int getCount(String tablename, String Where, String paraWhere) {
         return db.getCount(tablename,Where,paraWhere);
     }
     public static int getCount(String tablename)
     {
         return db.getCount(tablename);
     }
-
-
-
 }

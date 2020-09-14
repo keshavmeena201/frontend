@@ -80,11 +80,8 @@ public class dbhelper extends SQLiteOpenHelper {
     }
 
     // Creae Table Structure
-    public static String createTable(String table_name,
-                                     Map<String, String> fields, String primary_key) {
-
+    public static String createTable(String table_name, Map<String, String> fields, String primary_key) {
         String sql = "CREATE TABLE IF NOT EXISTS " + table_name + " ( ";
-
         for (Map.Entry<String, String> entry : fields.entrySet()) {
             if (entry.getKey().equals(primary_key))
                 sql += entry.getKey() + ' ' + (entry.getValue())
@@ -135,7 +132,6 @@ public class dbhelper extends SQLiteOpenHelper {
         return flag;
 
     }
-
     public String deleteSQL(String $table_name,
                             LinkedHashMap<String, String> whereclausefields) {
 
@@ -153,7 +149,6 @@ public class dbhelper extends SQLiteOpenHelper {
         return sql;
 
     }
-
     public String UpdateSQL(String $table_name,
                             LinkedHashMap<String, String> updatefields,
                             LinkedHashMap<String, String> whereclausefields) {
@@ -179,14 +174,12 @@ public class dbhelper extends SQLiteOpenHelper {
 
         return sql;
     }
-
     private static String removeLastCharacter(String sql) {
         if (sql.length() > 0 && sql.charAt(sql.length() - 1) == ',') {
             sql = sql.substring(0, sql.length() - 1);
         }
         return sql;
     }
-
     public Cursor selectSQL(String $table_name, String[] fields,
                             LinkedHashMap<String, String> whereclausefields, LinkedHashMap<String, String> or_whereclausefields, String orderby,
                             String groupby, String limit, boolean flag) {
@@ -238,7 +231,6 @@ public class dbhelper extends SQLiteOpenHelper {
         return sd.rawQuery(sql, null);
 
     }
-
     public Cursor selectSQL(String $table_name,
                             LinkedHashMap<String, String> whereclausefields, String orderby,
                             String groupby, String limit, boolean flag2) {
@@ -269,8 +261,6 @@ public class dbhelper extends SQLiteOpenHelper {
 
         return sd.rawQuery(sql, null);
     }
-
-
     public int getMax(String $table_name, String field) {
         // TODO Auto-generated method stub
         String sql = "SELECT max("+field+") FROM "+$table_name;
@@ -282,8 +272,6 @@ public class dbhelper extends SQLiteOpenHelper {
         c.close();
         return 0;
     }
-
-
     public Cursor selectLikeSQL(String $table_name, String[] fields,
                                 LinkedHashMap<String, String> whereclausefields, LinkedHashMap<String, String> or_whereclausefields, String orderby,
                                 String groupby, String limit, boolean flag) {
@@ -335,18 +323,14 @@ public class dbhelper extends SQLiteOpenHelper {
         return sd.rawQuery(sql, null);
 
     }
-
     public Cursor makeQuery(String sql) {
         // TODO Auto-generated method stub
         return sd.rawQuery(sql, null);
     }
-
     public Cursor makeQuerys(String tablename) {
         // TODO Auto-generated method stub
         return sd.rawQuery("select * from "+tablename, null);
     }
-
-
     public ArrayList<String[]> getData(String tablename) {
         // TODO Auto-generated method stub
         Cursor c= sd.rawQuery("select * from "+tablename, null);
@@ -362,7 +346,6 @@ public class dbhelper extends SQLiteOpenHelper {
 
         return lst;
     }
-
     public ArrayList<String[]> getDatabyqry(String qry) {
         // TODO Auto-generated method stub
         Cursor c= sd.rawQuery(qry, null);
@@ -378,8 +361,6 @@ public class dbhelper extends SQLiteOpenHelper {
 
         return lst;
     }
-
-
     public int makeSumQuery(String $table_name, String field) {
         // TODO Auto-generated method stub
 
@@ -392,7 +373,6 @@ public class dbhelper extends SQLiteOpenHelper {
         c.close();
         return 0;
     }
-
     public int getCount(String $table_name, String field, String para) {
         // TODO Auto-generated method stub
 

@@ -37,7 +37,8 @@ class Splash : AppCompatActivity() {
         // INIT SESSION MANAGER
         sessionManager = SessionManager.getInstance(context)!!
 
-        FirebaseDynamicLinks.getInstance()
+        FirebaseDynamicLinks
+            .getInstance()
             .getDynamicLink(intent)
             .addOnSuccessListener(
                 this
@@ -66,8 +67,7 @@ class Splash : AppCompatActivity() {
             } else {
                 if (Utils.isNetworkAvailable(this)) {
                     val dashboard = Intent(context, MobileVerify::class.java)
-                    dashboard.flags =
-                        Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    dashboard.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     startActivity(dashboard)
                 }  else {
                     Utils.showAlertCustom(context, resources.getString(R.string.no_network_connected))

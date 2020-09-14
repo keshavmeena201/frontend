@@ -31,6 +31,8 @@
                 android:src="@drawable/ic_close"
                 app:tint="@color/colorPrimary"
                 android:layout_marginTop="@dimen/_8sdp"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp"
                 android:layout_gravity="end"
                 android:paddingEnd="@dimen/_8sdp" />
 

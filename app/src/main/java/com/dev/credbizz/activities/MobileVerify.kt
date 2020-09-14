@@ -42,8 +42,6 @@ import retrofit2.Response
 import retrofit2.Retrofit
 
 class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayList<ContactModel>> {
-
-
     // INTEGER
     var request: Int = 0
     var contactLoaderId : Int = 1
@@ -93,6 +91,29 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
     // CONTEXT
     internal lateinit var context: Context
 
+    fun myInit(){
+        val constant = Constants()
+
+        // DONE BUTTON CLICK
+        btn_done.setOnClickListener {
+            if (ed_mobile_number.text.toString().trim().isEmpty()) {
+                ed_mobile_number.error = resources.getString(R.string.error_empty_mobile)
+                ed_mobile_number.isFocusable = true
+            } else if (!ValidationInputs.isValidNumber(ed_mobile_number.text.toString().trim())) {
+                ed_mobile_number.error = resources.getString(R.string.error_valid_mobile)
+                ed_mobile_number.isFocusable = true
+            } else {
+                Utils.hideSoftKeyboard(this)
+                Log.e("flag", constant.isFirst().toString())
+                getOtp()
+                //constant.setfirst()
+                sessionManager.mobileNumber = ed_mobile_number.text.toString()
+                sessionManager.isUserFirstTime = true
+            }
+            //showAlertCustom(context)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_mobile_verify)
@@ -119,33 +140,9 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
             && ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             requestpermission()
         } else {
-            // LoaderManager.getInstance(this).initLoader(contactLoaderId, null, this)
-        }
-        val constant = Constants()
-
-        // DONE BUTTON CLICK
-        btn_done.setOnClickListener {
-            if (ed_mobile_number.text.toString().trim().isEmpty()) {
-                ed_mobile_number.error = resources.getString(R.string.error_empty_mobile)
-                ed_mobile_number.isFocusable = true
-            } else if (!ValidationInputs.isValidNumber(ed_mobile_number.text.toString().trim())) {
-                ed_mobile_number.error = resources.getString(R.string.error_valid_mobile)
-                ed_mobile_number.isFocusable = true
-            } else {
-                Utils.hideSoftKeyboard(this)
-                Log.e("flag", constant.isFirst().toString())
-                getOtp()
-                //constant.setfirst()
-                sessionManager.mobileNumber = ed_mobile_number.text.toString()
-                sessionManager.isUserFirstTime = true
-
-            }
-
-
-            //showAlertCustom(context)
+            myInit()
         }
     }
-
 
     fun showAlertCustom(context: Context) {
 
@@ -194,7 +191,6 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
         alertDialog.window!!.attributes.windowAnimations = R.style.SlidingDialogAnimation
         alertDialog.show()
     }
-
     private fun initEditTextListener() {
         ed1.addTextChangedListener(object : TextWatcher {
             override fun afterTextChanged(s: Editable?) {
@@ -313,7 +309,6 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
         })
     }
 
-
     // SMS LISTENER
     private fun smsListener(){
         val client = SmsRetriever.getClient(context)
@@ -326,19 +321,13 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
         }
     }
 
-
     // REQUEST PERMISSIONS
     fun requestpermission() {
         ActivityCompat.requestPermissions(this, permit, request)
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        //val permissionLocation = ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
         if (grantResults.isNotEmpty()) {
             if (requestCode == request) {
                 if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -348,6 +337,7 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
                         // START FETCHING CONTACT LIST USING LOADER
                         LoaderManager.getInstance(this).initLoader(contactLoaderId, null, this)
                     }
+                    myInit()
                 } else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
                     Toast.makeText(
                         context,
@@ -363,11 +353,7 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
         return ContactsLoader(context)
     }
 
-    override fun onLoadFinished(
-        loader: Loader<ArrayList<ContactModel>>,
-        data: ArrayList<ContactModel>?
-    ) {
-
+    override fun onLoadFinished(loader: Loader<ArrayList<ContactModel>>, data: ArrayList<ContactModel>?) {
         if (data!!.size > 0){
             LoadTables.deleteTable(Keys.tbl_contacts)
             lst.clear()
@@ -391,7 +377,6 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
     override fun onLoaderReset(loader: Loader<ArrayList<ContactModel>>) {
 
     }
-
 
     // GET OTP API
     private fun getOtp(){
@@ -553,6 +538,4 @@ class MobileVerify : AppCompatActivity()  , LoaderManager.LoaderCallbacks<ArrayL
             finish()
         }, 2000)
     }
-
-
 }

@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.dev.credbizz"
-        minSdkVersion 26
+        minSdkVersion 22
         targetSdkVersion 30
         versionCode 3
         versionName "1.1"
@@ -39,11 +39,9 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
-
     // DP and SP library
     implementation 'com.intuit.sdp:sdp-android:1.0.6'
     implementation 'com.intuit.ssp:ssp-android:1.0.6'
-
     // RETROFIT LIBRARY
     implementation 'com.google.code.gson:gson:2.8.6'
     implementation 'com.squareup.retrofit2:retrofit:2.5.0'
@@ -51,17 +49,12 @@ dependencies {
     implementation 'com.squareup.picasso:picasso:2.5.2'
     implementation 'com.squareup.okhttp3:okhttp:3.12.1'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
-
     // IMAGE LOADER LIBRARY
     implementation 'com.nostra13.universalimageloader:universal-image-loader:1.9.5'
-
     // SMS RETRIVAL
     implementation 'com.google.android.gms:play-services-base:17.4.0'
     implementation 'com.google.android.gms:play-services-auth-api-phone:17.4.0'
     implementation 'com.google.firebase:firebase-analytics:17.5.0'
     implementation 'com.google.firebase:firebase-dynamic-links:19.1.0'
     implementation 'com.google.firebase:firebase-crashlytics:17.2.1'
-
-
-
 }

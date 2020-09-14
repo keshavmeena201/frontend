@@ -150,8 +150,7 @@ class Utils {
         }
 
         fun isNetworkAvailable(activity: Activity): Boolean {
-            val connectivity =
-                activity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val connectivity = activity.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
@@ -776,18 +775,23 @@ class Utils {
 
         var imageFilePath: String? = ""
 
-        @Throws(IOException::class)
         fun createImageFile(context: Context): File? {
-            val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val imageFileName = "IMG_" + timeStamp + "_"
-            val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-            val image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",  /* suffix  */
-                storageDir /* directory*/
-            )
-            imageFilePath = image.absolutePath
-            return image
+            try {
+                val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                val imageFileName = "IMG_" + timeStamp + "_"
+                val storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+                val image = File.createTempFile(
+                    imageFileName,  /* prefix */
+                    ".jpg",  /* suffix  */
+                    storageDir /* directory*/
+                )
+                imageFilePath = image.absolutePath
+                return image
+            }
+            catch (e : Exception){
+                e.printStackTrace()
+            }
+            return null
         }
 
         fun saveImage(myBitmap: Bitmap, context: Context?): String? {

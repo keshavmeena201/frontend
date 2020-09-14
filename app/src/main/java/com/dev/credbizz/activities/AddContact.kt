@@ -574,6 +574,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         btnSave.setOnClickListener {
             val constant = Constants()
             //addtransaction
+            btnSave.isEnabled = false
             selectedContact = contactName
             selectedNumber = contactNumber
             val reqObj = JsonObject()
@@ -602,7 +603,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                 formatValue = edAmount.text.toString().trim()
             }
             reqObj.addProperty("principleAmount", formatValue)
-            addTransaction(reqObj, txn)
+            addTransaction(reqObj, txn,btnSave)
 
 
         }
@@ -615,7 +616,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         alertDialog.show()
     }
 
-    private fun addTransaction(jsonObject: JsonObject, txnType : Int){
+    private fun addTransaction(jsonObject: JsonObject, txnType : Int,btn : Button){
         try {
             if (Utils.isNetworkAvailable(this)){
                 dialogLoader.showProgressDialog()
@@ -633,7 +634,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                         call: Call<JsonObject>,
                         response: Response<JsonObject>
                     ) {
-                        dialogLoader.hideProgressDialog()
+
                         try {
                             llTxnSaved.visibility = View.VISIBLE
 
@@ -641,6 +642,8 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                             Handler(Looper.myLooper()!!).postDelayed(Runnable {
                                 alertDialog.dismiss()
                                 ll_notify_popup.visibility = View.VISIBLE
+                                dialogLoader.hideProgressDialog()
+                                btn.isEnabled = true
                             }, 1000)
                             if (response.code() == 200) {
 
@@ -671,14 +674,17 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
                     }
 
                     override fun onFailure(call: Call<JsonObject>, t: Throwable) {
+                        btn.isEnabled = true
                         dialogLoader.hideProgressDialog()
                         t.printStackTrace()
                     }
                 })
             } else {
+                btn.isEnabled = true
                 Utils.showAlertCustom(context, resources.getString(R.string.no_network_connected))
             }
         } catch (e: Exception){
+            btn.isEnabled = true
             e.printStackTrace()
         }
 
@@ -973,7 +979,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
             .buildShortDynamicLink()
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    shortLink = task.result.shortLink.toString()
+                    shortLink = "https://credbizz.page.link/SiJ8"
                     if (notifyType == 1) {
                         if (txnType == 0) {
                             val smsIntent = Intent(Intent.ACTION_VIEW)

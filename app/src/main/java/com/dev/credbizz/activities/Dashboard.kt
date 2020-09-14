@@ -15,7 +15,9 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.text.Editable
+import android.text.InputType
 import android.text.TextWatcher
+import android.text.method.KeyListener
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -332,10 +334,10 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                                 Log.e("getOtpResp", responseString)
 
                                 if (isRefresh) {
-                                    Utils.showAlertCustom(
-                                        context,
-                                        resources.getString(R.string.transactions_updated)
-                                    )
+//                                    Utils.showAlertCustom(
+//                                        context,
+//                                        resources.getString(R.string.transactions_updated)
+//                                    )
                                     isRefresh = false
                                 }
 
@@ -419,7 +421,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
             .buildShortDynamicLink()
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    shortLink = task.result.shortLink.toString()
+                    shortLink = "https://credbizz.page.link/SiJ8"
                     val intent = Intent()
                     intent.action = Intent.ACTION_SEND
                     intent.type = "text/plain"
@@ -475,7 +477,6 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         var txnT : Int = 0
 
         edAmount = dialogView.findViewById(R.id.ed_amount)
-
         llNotify = dialogView.findViewById(R.id.ll_notify)
         llTxnSettled = dialogView.findViewById(R.id.ll_txn_settled)
 
@@ -497,13 +498,21 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
         val amount : Int = transactionModel.principleAmount - transactionModel.amountPaid
         edAmount.setText(amount.toString())
+        // edAmount.tag = edAmount.keyListener
+        edAmount.isFocusable = false
+//        edAmount.keyListener = null
+
+
 
         // GENDER SELECT
         rgTransactionType.setOnCheckedChangeListener { radioGroup, i ->
             Utils.hideSoftKeyboard(this@Dashboard)
             if (i == R.id.rb_give) {
                 txnT = 0
+                Log.i("tagg","done")
                 transactionModel.settled = true
+                edAmount.isFocusable = false
+
                 //txAmountHeader.text = "You got " + Keys.rupeeSymbol + "0 from " + contactName
                 //txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.green))
                 edAmount.setText(transactionModel.principleAmount.toString())
@@ -521,6 +530,9 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
             } else if (i == R.id.rb_got) {
                 txnT = 1
                 transactionModel.partial = true
+                //edAmount.keyListener = (edAmount.tag as KeyListener)
+
+                edAmount.setFocusableInTouchMode(true)
                 //txAmountHeader.text = "You gave " + Keys.rupeeSymbol + "0 to " + contactName
                 //txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.red))
                 edAmount.setText("0")
@@ -559,12 +571,10 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
         val font: Typeface = Typeface.createFromAsset(assets, "fonts/montserrat_regular.ttf")
         edAmount.typeface = font
-
         edAmount.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
 
             }
-
             override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
                 if (txnT == 0) {
                     // txAmountHeader.text = "You gave " + Keys.rupeeSymbol + " " + p0.toString() + " to " + transactionModel.fromMobileNumber
@@ -572,11 +582,8 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                     // txAmountHeader.text = "You got " + Keys.rupeeSymbol + " " + p0.toString() + " from " + contactName
                 }
             }
-
             override fun afterTextChanged(p0: Editable?) {
-
             }
-
         })
 
         txAmountDate.setOnClickListener {
@@ -604,7 +611,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
            // val txnDate : String = transactionModel.transactionDate.substring(0, 10)
             transactionModel.transactionDate = null.toString()
             Log.e("txnDate", transactionModel.transactionDate)
-            settleUp(transactionModel)
+            settleUp(transactionModel,btnSave)
             //send addtransaction request
         }
 
@@ -617,30 +624,31 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
     }
 
 
-    private fun settleUp(transactionModel: TransactionModel){
+    private fun settleUp(transactionModel: TransactionModel,Btn : Button){
+        Btn.isEnabled = false
+        dialogLoader.showProgressDialog()
         try {
             if (Utils.isNetworkAvailable(this)){
                 val retrofit: Retrofit = RetrofitExtra.instance
                 val apis = retrofit.create(RetrofitService::class.java)
-
                 // API CALL
                 apis.settleUp(transactionModel).enqueue(object : retrofit2.Callback<JsonObject>{
 
-                    override fun onResponse(
-                        call: Call<JsonObject>,
-                        response: Response<JsonObject>
-                    ) {
+                    override fun onResponse( call: Call<JsonObject>, response: Response<JsonObject>) {
                         try {
                             Log.e("getOtpResp", response.toString())
                             if (response.code() == 200) {
                                 Log.e("reqObj", response.raw().toString())
-
+                                getProfileScore(sessionManager.mobileNumber!!)
+                                getTransactions(sessionManager.mobileNumber!!, this@Dashboard)
                                 llTxnSettled.visibility = View.VISIBLE
 
                                 tx_notify_user.text = resources.getString(R.string.notify_label) + " " + selectedContact + "?"
                                 Handler(Looper.myLooper()!!).postDelayed(Runnable {
                                     alertDialog.dismiss()
                                     ll_notify_popup.visibility = View.VISIBLE
+                                    Btn.isEnabled = true
+                                    dialogLoader.hideProgressDialog()
                                 }, 1000)
                             } else {
                                 try {
@@ -654,29 +662,39 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                                             // Utils.showAlertCustom(context, registerResponse.get(Keys.error).asString)
                                         }
                                     }
+                                    Btn.isEnabled = true
+                                    dialogLoader.hideProgressDialog()
                                 } catch (e : Exception) {
                                     e.printStackTrace()
+                                    Btn.isEnabled = true
+                                    dialogLoader.hideProgressDialog()
                                 }
                             }
 
                         } catch (e : Exception){
                             e.printStackTrace()
+                            Btn.isEnabled = true
+                            dialogLoader.hideProgressDialog()
                         }
                     }
 
                     override fun onFailure(call: Call<JsonObject>, t: Throwable) {
+                        dialogLoader.hideProgressDialog()
                         t.printStackTrace()
+                        Btn.isEnabled = true
                     }
                 })
             } else {
+                Btn.isEnabled = true
+                dialogLoader.hideProgressDialog()
                 Utils.showAlertCustom(context, resources.getString(R.string.no_network_connected))
             }
         } catch (e : Exception){
+            Btn.isEnabled = true
+            dialogLoader.hideProgressDialog()
             e.printStackTrace()
         }
     }
-
-
 
     // SHOW DATE PICKER DIALOG
     fun showDatePickerDialog() {
@@ -958,7 +976,8 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
             .buildShortDynamicLink()
             .addOnCompleteListener(this) { task ->
                 if (task.isSuccessful) {
-                    shortLink = task.result.shortLink.toString()
+                    //shortLink = task.result.shortLink.toString()
+                    shortLink = "https://credbizz.page.link/SiJ8"
                     if (notifyType == 1) {
                         if (txnType == 0) {
                             val smsIntent = Intent(Intent.ACTION_VIEW)
@@ -1000,8 +1019,6 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                                  message  = "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has received partial amount of " + Keys.rupeeSymbol + edAmount.text.toString().trim() +
                                          " and settled the transaction on Credbizz."/* + txAmountDate.text.toString().trim() + */  + " Click on the below link to check the impact on your Credbizz Score \n" + shortLink
                             }
-
-
                             val url = "https://api.whatsapp.com/send?phone=$contact&text=$message"
                             try {
                                 val pm = context.packageManager
@@ -1026,8 +1043,6 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                                 message  = "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +  " has paid partial amount of " + Keys.rupeeSymbol + edAmount.text.toString().trim() +
                                         " and settled the transaction on Credbizz."/* + txAmountDate.text.toString().trim() + */  + " Click on the below link to check the impact on your Credbizz Score \n" + shortLink
                             }
-
-
                             val url =
                                 "https://api.whatsapp.com/send?phone=$contact&text=$message"
                             try {
@@ -1052,9 +1067,5 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                 Log.d("AAA", "test1 fail")
                 it.printStackTrace()
             }
-
-
     }
-
-
 }

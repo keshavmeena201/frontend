@@ -7,7 +7,7 @@ import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
 class SessionManager(// Context
-    var _context: Context
+    _context: Context
 ) {
     // Shared Preferences
     var pref: SharedPreferences
@@ -125,8 +125,8 @@ class SessionManager(// Context
 
     var isUserFirstTime : Boolean?
         get() = pref.getBoolean(IS_USER_FIRST_TIME, false)
-        set(isUserVerified) {
-            editor.putBoolean(IS_USER_FIRST_TIME, isUserVerified!!)
+        set(isUserFirstTime) {
+            editor.putBoolean(IS_USER_FIRST_TIME, isUserFirstTime!!)
             editor.commit()
         }
 
