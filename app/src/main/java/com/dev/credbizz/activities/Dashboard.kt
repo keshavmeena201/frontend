@@ -1,11 +1,13 @@
 package com.dev.credbizz.activities
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
@@ -13,6 +15,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.InputType
@@ -25,6 +28,7 @@ import android.view.Window
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -61,10 +65,12 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
     var serverDateString : String = ""
     var selectedContact : String = ""
     var selectedNumber : String = ""
+    var selectedText : String = "You Gave"
 
     // LINEAR LAYOUT
     lateinit var llNotify : LinearLayout
     lateinit var llTxnSettled : LinearLayout
+    lateinit var llTxnSaved : LinearLayout
 
     // EDIT TEXT
     lateinit var edAmount : EditText
@@ -77,6 +83,8 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
     lateinit var txRupeeSymbol : TextView
     lateinit var txSendMessage : TextView
     lateinit var txSendWhatsApp : TextView
+    lateinit var txTxnHeader : TextView
+    lateinit var txAmountHeader : TextView
 
     // RADIO GROUP
     lateinit var rgTransactionType : RadioGroup
@@ -186,8 +194,9 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
         // ADD PAYMENT CLICK
         btn_add_payment.setOnClickListener {
-            val addContact = Intent(context, AddContact::class.java)
-            startActivity(addContact)
+//            val addContact = Intent(context, AddContact::class.java)
+//            startActivity(addContact)
+            addPayment()
         }
 
         // EDIT COMPANY NAME
@@ -214,6 +223,451 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
             onResume()
         }
     }
+
+    fun addPayment(){
+        //First settle this out
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED
+            || ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+            || ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+            || ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+
+             val permit = arrayOf(
+                Manifest.permission.READ_CONTACTS,
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.CAMERA
+            )
+            ActivityCompat.requestPermissions(this, permit, 0)
+
+        }
+        else{
+            showContactIntent()
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        //val permissionLocation = ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
+        if (grantResults.isNotEmpty()) {
+            if (requestCode == 1) {
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    showContactIntent()
+                }
+                else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                    Toast.makeText(context, resources.getString(R.string.denied_permission), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun showContactIntent(){
+        val intent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(intent, 1);
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == Keys.REQUEST_CAMERA || requestCode == Keys.SELECT_FILE) {
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N) {
+                    if (resultCode == Activity.RESULT_OK) {
+                        if (requestCode == Keys.SELECT_FILE) {
+                            if (data != null) {
+                                onSelectFromGalleryResult(data)
+                            }
+                        } else if (requestCode == Keys.REQUEST_CAMERA) {
+                            if (data != null) {
+                                onCaptureImageResult(data)
+                            }
+                        }
+                    }
+                } else {
+                    if (requestCode == Keys.REQUEST_CAMERA) {
+                        val imagePath = Utils.imageFilePath
+                        //selectedImagePath = imagePath!!
+
+                        val bmOptions = BitmapFactory.Options()
+                        bmOptions.inJustDecodeBounds = true
+                        BitmapFactory.decodeFile(imagePath, bmOptions)
+                        val photoW = bmOptions.outWidth
+                        val photoH = bmOptions.outHeight
+
+                        // Determine how much to scale down the image
+                        val scaleFactor = Math.min(photoW / 100, photoH / 100)
+
+                        // Decode the image file into a Bitmap sized to fill the View
+                        bmOptions.inJustDecodeBounds = false
+                        bmOptions.inSampleSize = scaleFactor
+                        bmOptions.inPurgeable = true
+
+                        val bitmap = BitmapFactory.decodeFile(imagePath, bmOptions)
+
+                        try {
+                            selectedImagePath = Utils.saveImage(bitmap, context)!!
+                        } catch (e: java.lang.Exception) {
+                            e.printStackTrace()
+                        }
+                    } else if (requestCode == Keys.SELECT_FILE) {
+                        if (data != null) {
+                            val contentURI: Uri = data.data!!
+                            try {
+//                                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, contentURI)
+//                                val path: String  = Utils.getRealPathFromURI(contentURI, this)!!
+
+                                val bitmap = MediaStore.Images.Media.getBitmap(
+                                    contentResolver,
+                                    contentURI
+                                )
+                                val path: String = Utils.getPath(context, contentURI)!!
+                                selectedImagePath = Utils.saveImage(bitmap, context)!!
+                                //selectedImagePath = path
+
+                            } catch (e: IOException) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                }
+            }
+            else if(requestCode==1){
+                val uri = data!!.data
+                val cursor1: Cursor?
+                val cursor2: Cursor?
+                val TempNameHolder: String
+                var TempNumberHolder: String
+                val TempContactID: String
+                var IDresult = ""
+                val IDresultHolder: Int
+
+                cursor1 = contentResolver.query(uri!!, null, null, null, null)
+
+                if (cursor1!!.moveToFirst()) {
+                    TempNameHolder = cursor1.getString(cursor1.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+                    TempContactID = cursor1.getString(cursor1.getColumnIndex(ContactsContract.Contacts._ID))
+                    IDresult = cursor1.getString(cursor1.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))
+                    IDresultHolder = Integer.valueOf(IDresult)
+                    if (IDresultHolder == 1) {
+                        cursor2 = contentResolver.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + TempContactID,
+                            null,
+                            null
+                        )
+                        if (cursor2!!.moveToNext()) {
+                            TempNumberHolder = cursor2.getString(cursor2.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                            Log.i("tag name", TempNameHolder)
+                            Log.i("tag number",TempNumberHolder)
+                            showAlertCustomForAddPayment(this,TempNameHolder,TempNumberHolder)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    // SHOW PAYMENT POPUP
+    @SuppressLint("SetTextI18n")
+    fun showAlertCustomForAddPayment(context: Context, contactName: String, contactNumber: String) {
+
+        Log.i("tagggg contact",contactNumber)
+        Log.i("tagggg name",contactName)
+        dialog = AlertDialog.Builder(context)
+        val dialogView: View = LayoutInflater.from(context).inflate(
+            R.layout.add_payment_popup,
+            null
+        )
+        dialog.setView(dialogView)
+        dialog.setCancelable(true)
+
+        edAmount = dialogView.findViewById(R.id.ed_amount)
+        llNotify = dialogView.findViewById(R.id.ll_notify)
+        txTxnHeader = dialogView.findViewById<TextView>(R.id.tx_txn_header)
+        txAmountHeader = dialogView.findViewById<TextView>(R.id.tx_payment_status)
+        txAmountDate = dialogView.findViewById<TextView>(R.id.tx_payment_date)
+        txAmountBills = dialogView.findViewById<TextView>(R.id.tx_payment_image)
+        txRupeeSymbol = dialogView.findViewById<TextView>(R.id.tx_rupee_symbol)
+        cbNotify = dialogView.findViewById<CheckBox>(R.id.cb_notify)
+        rgTransactionType = dialogView.findViewById<RadioGroup>(R.id.rg_action)
+        btnSave = dialogView.findViewById<Button>(R.id.btn_save)
+        llTxnSaved = dialogView.findViewById<LinearLayout>(R.id.ll_txn_saved)
+        txTxnHeader.text = "Transaction with " + contactName
+        rgTransactionType.setOnCheckedChangeListener { radioGroup, i ->
+            Utils.hideSoftKeyboard(this@Dashboard)
+            when(i){
+                R.id.rb_give -> {
+                    selectedText = resources.getString(R.string.you_gave)
+                    txAmountHeader.text = "You gave " + Keys.rupeeSymbol + " " + edAmount.text.toString().trim() + " to " + contactName
+                    txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.green))
+                    edAmount.setTextColor(ContextCompat.getColor(context, R.color.green))
+                    txAmountDate.setTextColor(ContextCompat.getColor(context, R.color.green))
+                    txRupeeSymbol.setTextColor(ContextCompat.getColor(context, R.color.green))
+                    txAmountBills.setTextColor(ContextCompat.getColor(context, R.color.green))
+                    Utils.setTextViewDrawableColor(context, txAmountDate, R.color.green)
+                    Utils.setTextViewDrawableColor(context, txAmountBills, R.color.green)
+                    btnSave.setBackgroundResource(R.drawable.green_corner_bg)
+                    return@setOnCheckedChangeListener
+                }
+
+                R.id.rb_got -> {
+                    selectedText = resources.getString(R.string.you_got)
+                    txAmountHeader.text = "You received " + Keys.rupeeSymbol + " " + edAmount.text.toString().trim() + " from " + contactName
+                    txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                    edAmount.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                    txAmountDate.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                    txRupeeSymbol.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                    txAmountBills.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                    Utils.setTextViewDrawableColor(context, txAmountDate, R.color.yellow)
+                    Utils.setTextViewDrawableColor(context, txAmountBills, R.color.yellow)
+                    btnSave.setBackgroundResource(R.drawable.red_corner_bg)
+                    return@setOnCheckedChangeListener
+                }
+            }
+
+        }
+        txAmountHeader.text = "You gave " + Keys.rupeeSymbol + "0 to " + contactName
+        llTxnSaved = dialogView.findViewById(R.id.ll_txn_saved)
+
+
+
+        val cal = Calendar.getInstance()
+        cal.add(Calendar.MONTH, 1)
+        val date = Date(cal.timeInMillis)
+        val dateString: String = SimpleDateFormat("dd MMM yy").format(date)
+        val serverDate: String = SimpleDateFormat("yyyy-MM-dd").format(date)
+        serverDateString = serverDate
+        txAmountDate.text = dateString
+
+        cbNotify.text = resources.getString(R.string.notify_text) + " " + contactName
+        cbNotify.setOnCheckedChangeListener { compoundButton, b ->
+            if (b){
+                llNotify.visibility = View.VISIBLE
+            } else {
+                llNotify.visibility = View.GONE
+            }
+        }
+
+        val font: Typeface = Typeface.createFromAsset(assets, "fonts/montserrat_regular.ttf")
+        edAmount.typeface = font
+
+        edAmount.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+
+            }
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                if (selectedText == resources.getString(R.string.you_gave)) {
+                    txAmountHeader.text = "You gave " + Keys.rupeeSymbol + " " + p0.toString() + " to " + contactName
+                    txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.green))
+                } else if (selectedText == resources.getString(R.string.you_got)) {
+                    txAmountHeader.text =
+                        "You received " + Keys.rupeeSymbol + " " + p0.toString() + " from " + contactName
+                    txAmountHeader.setTextColor(ContextCompat.getColor(context, R.color.yellow))
+                }
+            }
+
+            override fun afterTextChanged(p0: Editable?) {
+
+            }
+
+        })
+
+        txAmountDate.setOnClickListener {
+            showDatePickerDialogForAddPayment()
+        }
+        txAmountBills.setOnClickListener {
+            attachBillsForAddPayment()
+        }
+        alertDialog = dialog.create()
+        alertDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        alertDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        alertDialog.window!!.attributes.windowAnimations = R.style.SlidingDialogAnimation
+
+
+        btnSave.setOnClickListener {
+            //addtransaction
+            btnSave.isEnabled = false
+            selectedContact = contactName
+            selectedNumber = contactNumber
+            val reqObj = JsonObject()
+            var txn : Int = 0;
+            if (selectedText == resources.getString(R.string.you_gave)) {
+                reqObj.addProperty("fromMobileNumber", sessionManager.mobileNumber)
+                reqObj.addProperty("toMobileNumber", contactNumber)
+                reqObj.addProperty("fromName", sessionManager.orgName)
+                reqObj.addProperty("toName", contactName)
+                reqObj.addProperty("transactionType", true)
+                type = 0
+            } else{
+                reqObj.addProperty("toMobileNumber", sessionManager.mobileNumber)
+                reqObj.addProperty("fromMobileNumber", contactNumber)
+                reqObj.addProperty("fromName", contactName)
+                reqObj.addProperty("toName", sessionManager.orgName)
+                reqObj.addProperty("transactionType", false)
+                type = 1
+            }
+            reqObj.addProperty("transactionDueDate", serverDateString.toString())
+            var formatValue = edAmount.text.toString().trim()
+            if (formatValue.contains(",")){
+                formatValue = formatValue.replace(",", "")
+            } else {
+                formatValue = edAmount.text.toString().trim()
+            }
+            reqObj.addProperty("principleAmount", formatValue)
+            addTransaction(reqObj, txn,btnSave)
+        }
+
+        alertDialog.show()
+    }
+    // SHOW DATE PICKER DIALOG
+    fun showDatePickerDialogForAddPayment() {
+        try {
+            val c = Calendar.getInstance()
+            val year = c[Calendar.YEAR]
+            val month = c[Calendar.MONTH]+1
+            val day = c[Calendar.DAY_OF_MONTH]
+            val datePicker: DatePickerDialog = DatePickerDialog(
+                context, R.style.DatePickerTheme,
+                DatePickerDialog.OnDateSetListener { p0, year, month, day ->
+                    val newDate = Calendar.getInstance()
+                    newDate.set(year, month, day)
+                    val dateString: String =
+                        SimpleDateFormat("dd MMM yy").format(Date(newDate.timeInMillis))
+                    val serverDate: String =
+                        SimpleDateFormat("yyyy-MM-dd").format(Date(newDate.timeInMillis))
+                    serverDateString = serverDate
+                    txAmountDate.text = dateString
+                }, year, month, day
+            )
+            datePicker.setTitle(resources.getString(R.string.select_date))
+            datePicker.datePicker.minDate = System.currentTimeMillis()
+            datePicker.show()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    // ATTACH BILLS DIALOG
+    fun attachBillsForAddPayment(){
+        var alertDialog : AlertDialog? = null
+        val dialog = AlertDialog.Builder(context)
+        val dialogView: View = LayoutInflater.from(context).inflate(
+            R.layout.attach_bills_popup,
+            null
+        )
+        dialog.setView(dialogView)
+        dialog.setCancelable(true)
+
+
+        val txTakePicture : TextView = dialogView.findViewById(R.id.tx_take_picture)
+        val txOpenGallery : TextView = dialogView.findViewById(R.id.tx_open_gallery)
+
+
+        val result = Utils.checkPermission(this)
+
+        txTakePicture.setOnClickListener {
+            if (result) {
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N) {
+                    cameraIntent()
+                } else {
+                    Utils.openCameraIntent(this, this)
+                }
+                alertDialog!!.dismiss()
+            }
+        }
+
+        txOpenGallery.setOnClickListener {
+            if (result) {
+                galleryIntent()
+                alertDialog!!.dismiss()
+            }
+        }
+
+        alertDialog = dialog.create()
+        alertDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        alertDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        alertDialog.window!!.attributes.windowAnimations = R.style.SlidingDialogAnimation
+        alertDialog.show()
+    }
+
+    fun addTransaction(jsonObject: JsonObject, txnType : Int,btn : Button){
+        try {
+            if (Utils.isNetworkAvailable(this)){
+
+                dialogLoader.showProgressDialog()
+                val retrofit: Retrofit = RetrofitExtra.instance
+                val apis = retrofit.create(RetrofitService::class.java)
+
+                // REQUEST OBJECT
+                val reqObj = jsonObject
+                Log.e("reqObj", reqObj.toString())
+
+                // API CALL
+                apis.addtransaction(reqObj).enqueue(object : retrofit2.Callback<JsonObject> {
+                    override fun onResponse(call: Call<JsonObject>, response: Response<JsonObject>) {
+                        onResume()
+                        try {
+                            tx_notify_user.text = resources.getString(R.string.notify_label) + " " + selectedContact + "?"
+                            llTxnSaved.visibility = View.VISIBLE
+                            dialogLoader.hideProgressDialog()
+                            if (response.code() == 200) {
+                                Handler(Looper.myLooper()!!).postDelayed(Runnable {
+                                    Log.i("Dismiss","Dismiss")
+                                    alertDialog.dismiss()
+                                    ll_notify_popup.visibility = View.VISIBLE
+                                    btn.isEnabled = true
+                                }, 1000)
+                                val responseString = response.body().toString()
+                                Log.e("getOtpResp", responseString)
+                                //val status = responseObject.getBoolean(Keys.status)
+                            } else {
+                                alertDialog.dismiss()
+                                try {
+                                    val responseError = response.errorBody()?.string()
+                                    val gson = Gson()
+                                    val adapter = gson.getAdapter(JsonObject::class.java)
+                                    if (response.errorBody() != null) {
+                                        val registerResponse = adapter.fromJson(responseError)
+                                        if (registerResponse.has(Keys.error)) {
+                                            // Utils.showAlertCustom(context, registerResponse.get(Keys.error).asString)
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+
+                        } catch (e: Exception) {
+                            ll_notify_popup.visibility = View.VISIBLE
+                            dialogLoader.hideProgressDialog()
+                            btn.isEnabled = true
+                            alertDialog.dismiss()
+                            e.printStackTrace()
+                        }
+                    }
+
+                    override fun onFailure(call: Call<JsonObject>, t: Throwable) {
+                        alertDialog.dismiss()
+                        ll_notify_popup.visibility = View.VISIBLE
+                        dialogLoader.hideProgressDialog()
+                        btn.isEnabled = true
+                        t.printStackTrace()
+                    }
+                })
+            } else {
+                alertDialog.cancel()
+                ll_notify_popup.visibility = View.VISIBLE
+                dialogLoader.hideProgressDialog()
+                btn.isEnabled = true
+                Utils.showAlertCustom(context, resources.getString(R.string.no_network_connected))
+            }
+        } catch (e: Exception){
+            btn.isEnabled = true
+            e.printStackTrace()
+        }
+
+    }
+
 
     override fun onResume() {
         super.onResume()
@@ -404,31 +858,37 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
     // SHARE APP
     fun shareApp() {
         var shortLink: String = ""
-        FirebaseDynamicLinks.getInstance().createDynamicLink()
-            .setLink(Uri.parse(Keys.dynamicLinkPageUrl))
-            .setDomainUriPrefix(Keys.dynamicLinkPageTransactionLink)
-            .setAndroidParameters(
-                DynamicLink.AndroidParameters.Builder(Keys.applicationId)
-                    .setMinimumVersion(1)
-                    .build()
-            )
-            .setIosParameters(
-                DynamicLink.IosParameters.Builder("")
-                    .setAppStoreId("")
-                    .setMinimumVersion("")
-                    .build()
-            )
-            .buildShortDynamicLink()
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    shortLink = "https://credbizz.page.link/SiJ8"
-                    val intent = Intent()
-                    intent.action = Intent.ACTION_SEND
-                    intent.type = "text/plain"
-                    intent.putExtra(Intent.EXTRA_TEXT, resources.getString(R.string.share_text) + " " +shortLink )
-                    startActivity(Intent.createChooser(intent, "Share to"))
-                }
-            }
+        shortLink = "https://credbizz.page.link/SiJ8"
+        val intent = Intent()
+        intent.action = Intent.ACTION_SEND
+        intent.type = "text/plain"
+        intent.putExtra(Intent.EXTRA_TEXT, resources.getString(R.string.share_text) + " " +shortLink )
+        startActivity(Intent.createChooser(intent, "Share to"))
+//        FirebaseDynamicLinks.getInstance().createDynamicLink()
+//            .setLink(Uri.parse(Keys.dynamicLinkPageUrl))
+//            .setDomainUriPrefix(Keys.dynamicLinkPageTransactionLink)
+//            .setAndroidParameters(
+//                DynamicLink.AndroidParameters.Builder(Keys.applicationId)
+//                    .setMinimumVersion(1)
+//                    .build()
+//            )
+//            .setIosParameters(
+//                DynamicLink.IosParameters.Builder("")
+//                    .setAppStoreId("")
+//                    .setMinimumVersion("")
+//                    .build()
+//            )
+//            .buildShortDynamicLink()
+//            .addOnCompleteListener(this) { task ->
+//                if (task.isSuccessful) {
+////                    shortLink = "https://credbizz.page.link/SiJ8"
+////                    val intent = Intent()
+////                    intent.action = Intent.ACTION_SEND
+////                    intent.type = "text/plain"
+////                    intent.putExtra(Intent.EXTRA_TEXT, resources.getString(R.string.share_text) + " " +shortLink )
+////                    startActivity(Intent.createChooser(intent, "Share to"))
+//                }
+//            }
 
 
     }
@@ -462,6 +922,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         }
 
     }
+
     // SHOW PAYMENT POPUP
     @SuppressLint("SetTextI18n")
     fun showAlertCustom(context: Context, transactionModel: TransactionModel,  contactNumber: String, contactName :String, settleUpType : Int) {
@@ -635,6 +1096,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                 apis.settleUp(transactionModel).enqueue(object : retrofit2.Callback<JsonObject>{
 
                     override fun onResponse( call: Call<JsonObject>, response: Response<JsonObject>) {
+                        onResume()
                         try {
                             Log.e("getOtpResp", response.toString())
                             if (response.code() == 200) {
@@ -651,6 +1113,10 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                                     dialogLoader.hideProgressDialog()
                                 }, 1000)
                             } else {
+                                alertDialog.dismiss()
+                                ll_notify_popup.visibility = View.VISIBLE
+                                Btn.isEnabled = true
+                                dialogLoader.hideProgressDialog()
                                 try {
                                     val responseError = response.errorBody()?.string()
                                     val gson = Gson()
@@ -673,23 +1139,30 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
                         } catch (e : Exception){
                             e.printStackTrace()
+                            alertDialog.dismiss()
+                            ll_notify_popup.visibility = View.VISIBLE
                             Btn.isEnabled = true
                             dialogLoader.hideProgressDialog()
                         }
                     }
 
                     override fun onFailure(call: Call<JsonObject>, t: Throwable) {
-                        dialogLoader.hideProgressDialog()
-                        t.printStackTrace()
+                        alertDialog.dismiss()
+                        ll_notify_popup.visibility = View.VISIBLE
                         Btn.isEnabled = true
+                        dialogLoader.hideProgressDialog()
                     }
                 })
             } else {
+                alertDialog.dismiss()
+                ll_notify_popup.visibility = View.VISIBLE
                 Btn.isEnabled = true
                 dialogLoader.hideProgressDialog()
                 Utils.showAlertCustom(context, resources.getString(R.string.no_network_connected))
             }
         } catch (e : Exception){
+            alertDialog.dismiss()
+            ll_notify_popup.visibility = View.VISIBLE
             Btn.isEnabled = true
             dialogLoader.hideProgressDialog()
             e.printStackTrace()
@@ -825,73 +1298,6 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         val tempUri = Utils.getImageUri(this, compressBitmap!!)
         val s = Utils.getRealPathFromURI(tempUri, this)
         selectedImagePath = s!!
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == Keys.REQUEST_CAMERA || requestCode == Keys.SELECT_FILE) {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N) {
-                    if (resultCode == Activity.RESULT_OK) {
-                        if (requestCode == Keys.SELECT_FILE) {
-                            if (data != null) {
-                                onSelectFromGalleryResult(data)
-                            }
-                        } else if (requestCode == Keys.REQUEST_CAMERA) {
-                            if (data != null) {
-                                onCaptureImageResult(data)
-                            }
-                        }
-                    }
-                } else {
-                    if (requestCode == Keys.REQUEST_CAMERA) {
-                        val imagePath = Utils.imageFilePath
-                        //selectedImagePath = imagePath!!
-
-                        val bmOptions = BitmapFactory.Options()
-                        bmOptions.inJustDecodeBounds = true
-                        BitmapFactory.decodeFile(imagePath, bmOptions)
-                        val photoW = bmOptions.outWidth
-                        val photoH = bmOptions.outHeight
-
-                        // Determine how much to scale down the image
-                        val scaleFactor = Math.min(photoW / 100, photoH / 100)
-
-                        // Decode the image file into a Bitmap sized to fill the View
-                        bmOptions.inJustDecodeBounds = false
-                        bmOptions.inSampleSize = scaleFactor
-                        bmOptions.inPurgeable = true
-
-                        val bitmap = BitmapFactory.decodeFile(imagePath, bmOptions)
-
-                        try {
-                            selectedImagePath = Utils.saveImage(bitmap, context)!!
-                        } catch (e: java.lang.Exception) {
-                            e.printStackTrace()
-                        }
-                    } else if (requestCode == Keys.SELECT_FILE) {
-                        if (data != null) {
-                            val contentURI: Uri = data.data!!
-                            try {
-//                                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, contentURI)
-//                                val path: String  = Utils.getRealPathFromURI(contentURI, this)!!
-
-                                val bitmap = MediaStore.Images.Media.getBitmap(
-                                    contentResolver,
-                                    contentURI
-                                )
-                                val path: String = Utils.getPath(context, contentURI)!!
-                                selectedImagePath = Utils.saveImage(bitmap, context)!!
-                                //selectedImagePath = path
-
-                            } catch (e: IOException) {
-                                e.printStackTrace()
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private fun compressImage(image: Bitmap): Bitmap? {

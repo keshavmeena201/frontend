@@ -7,6 +7,7 @@ import android.app.DatePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.database.Cursor
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
@@ -17,6 +18,7 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.text.Editable
 import android.text.TextUtils
@@ -32,8 +34,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.loader.app.LoaderManager
 import androidx.loader.content.Loader
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.dev.credbizz.R
 import com.dev.credbizz.adapters.ContactsAdapter
 import com.dev.credbizz.dbHelper.Constants
@@ -43,11 +43,8 @@ import com.dev.credbizz.extras.Keys.Companion.REQUEST_CAMERA
 import com.dev.credbizz.extras.Keys.Companion.SELECT_FILE
 import com.dev.credbizz.models.ContactModel
 import com.dev.credbizz.models.ProfileDataModel
-import com.google.android.gms.tasks.OnCompleteListener
-import com.google.android.gms.tasks.Task
 import com.google.firebase.dynamiclinks.DynamicLink
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
-import com.google.firebase.dynamiclinks.ShortDynamicLink
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import kotlinx.android.synthetic.main.activity_add_contact.*
@@ -151,6 +148,9 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_contact)
 
+        val intent = Intent(Intent.ACTION_PICK,ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(intent, 1);
+
         // INIT CONTEXT
         context = this
 
@@ -186,54 +186,55 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
 
         // INIT RECYCLER VIEW
         rec_contacts_view.setHasFixedSize(true)
-        rec_contacts_view.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+        //rec_contacts_view.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
 
         // INIT ARRAY LIST
         contactList = ArrayList()
-
-
-        // SEARCH USER TEXT WATCHER
-        ed_search.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-
-            }
-
-            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-                if (p0.toString().length > 1) {
-                    filteredArrayList.clear()
-                    filteredArrayList = filter(contactList, p0.toString())
-                    if (filteredArrayList.size > 0) {
-                        isSearch = true
-                        rec_contacts_view.visibility = View.VISIBLE
-                        tx_empty.visibility = View.GONE
-                        contactsAdapter =
-                            ContactsAdapter(context, filteredArrayList, this@AddContact)
-                        rec_contacts_view.adapter = contactsAdapter
-                    } else {
-                        isSearch = false
-                        rec_contacts_view.visibility = View.VISIBLE
-                        tx_empty.visibility = View.GONE
-                        rec_contacts_view.visibility = View.GONE
-                        tx_empty.visibility = View.VISIBLE
-                    }
-                } else {
-                    isSearch = false
-                    contactsAdapter = ContactsAdapter(context, contactList, this@AddContact)
-                    rec_contacts_view.adapter = contactsAdapter
-                }
-            }
-
-            override fun afterTextChanged(p0: Editable?) {
-
-            }
-
-        })
-
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
-            getContactList()
-        } else {
-            getContactList()
-        }
+//
+//
+//        // SEARCH USER TEXT WATCHER
+//        ed_search.addTextChangedListener(object : TextWatcher {
+//            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+//
+//            }
+//
+//            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+//                if (p0.toString().length > 1) {
+//                    filteredArrayList.clear()
+//                    filteredArrayList = filter(contactList, p0.toString())
+//                    if (filteredArrayList.size > 0) {
+//                        isSearch = true
+//                        rec_contacts_view.visibility = View.VISIBLE
+//                        tx_empty.visibility = View.GONE
+//                        contactsAdapter =
+//                            ContactsAdapter(context, filteredArrayList, this@AddContact)
+//                        rec_contacts_view.adapter = contactsAdapter
+//                    } else {
+//                        isSearch = false
+//                        rec_contacts_view.visibility = View.VISIBLE
+//                        tx_empty.visibility = View.GONE
+//                        rec_contacts_view.visibility = View.GONE
+//                        tx_empty.visibility = View.VISIBLE
+//                    }
+//                } else {
+//                    isSearch = false
+//                    contactsAdapter = ContactsAdapter(context, contactList, this@AddContact)
+//                    rec_contacts_view.adapter = contactsAdapter
+//                }
+//            }
+//
+//            override fun afterTextChanged(p0: Editable?) {
+//
+//            }
+//
+//        })
+//
+//
+//        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.LOLLIPOP_MR1) {
+//            getContactList()
+//        } else {
+//            getContactList()
+//        }
 
         getCredUsers()
 
@@ -263,6 +264,109 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         }
     }
 
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            if (requestCode == REQUEST_CAMERA || requestCode == SELECT_FILE) {
+                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N) {
+                    if (resultCode == Activity.RESULT_OK) {
+                        if (requestCode == SELECT_FILE) {
+                            if (data != null) {
+                                onSelectFromGalleryResult(data)
+                            }
+                        } else if (requestCode == REQUEST_CAMERA) {
+                            if (data != null) {
+                                onCaptureImageResult(data)
+                            }
+                        }
+                    }
+                } else {
+                    if (requestCode == REQUEST_CAMERA) {
+                        val imagePath = Utils.imageFilePath
+                        //selectedImagePath = imagePath!!
+
+                        val bmOptions = BitmapFactory.Options()
+                        bmOptions.inJustDecodeBounds = true
+                        BitmapFactory.decodeFile(imagePath, bmOptions)
+                        val photoW = bmOptions.outWidth
+                        val photoH = bmOptions.outHeight
+
+                        // Determine how much to scale down the image
+                        val scaleFactor = Math.min(photoW / 100, photoH / 100)
+
+                        // Decode the image file into a Bitmap sized to fill the View
+                        bmOptions.inJustDecodeBounds = false
+                        bmOptions.inSampleSize = scaleFactor
+                        bmOptions.inPurgeable = true
+
+                        val bitmap = BitmapFactory.decodeFile(imagePath, bmOptions)
+
+                        try {
+                            selectedImagePath = Utils.saveImage(bitmap, context)!!
+                        } catch (e: java.lang.Exception) {
+                            e.printStackTrace()
+                        }
+                    } else if (requestCode == SELECT_FILE) {
+                        if (data != null) {
+                            val contentURI: Uri = data.data!!
+                            try {
+//                                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, contentURI)
+//                                val path: String  = Utils.getRealPathFromURI(contentURI, this)!!
+
+                                val bitmap = MediaStore.Images.Media.getBitmap(
+                                    contentResolver,
+                                    contentURI
+                                )
+                                val path: String = Utils.getPath(context, contentURI)!!
+                                selectedImagePath = Utils.saveImage(bitmap, context)!!
+                                //selectedImagePath = path
+
+                            } catch (e: IOException) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                }
+            }
+            else if(requestCode==1){
+                val uri = data!!.data
+                val cursor1: Cursor?
+                val cursor2: Cursor?
+                val TempNameHolder: String
+                var TempNumberHolder: String
+                val TempContactID: String
+                var IDresult = ""
+                val IDresultHolder: Int
+
+                cursor1 = contentResolver.query(uri!!, null, null, null, null)
+
+                if (cursor1!!.moveToFirst()) {
+                    TempNameHolder = cursor1.getString(cursor1.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
+                    TempContactID = cursor1.getString(cursor1.getColumnIndex(ContactsContract.Contacts._ID))
+                    IDresult = cursor1.getString(cursor1.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))
+                    IDresultHolder = Integer.valueOf(IDresult)
+                    if (IDresultHolder == 1) {
+                        cursor2 = contentResolver.query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + TempContactID,
+                            null,
+                            null
+                        )
+                        while (cursor2!!.moveToNext()) {
+                            TempNumberHolder = cursor2.getString(cursor2.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
+                            Log.i("tag name", TempNameHolder)
+                            Log.i("tag number",TempNumberHolder)
+                            showAlertCustom(this,TempNameHolder,TempNumberHolder)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
     // REQUEST PERMISSIONS
     fun requestpermission() {
         ActivityCompat.requestPermissions(this, permit, request)
@@ -290,6 +394,8 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
             }
         }
     }
+
+
 
     // GET LIST
     private fun getContactList(){
@@ -690,7 +796,6 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
 
     }
 
-
     // SHOW DATE PICKER DIALOG
     fun showDatePickerDialog() {
         try {
@@ -814,72 +919,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
         selectedImagePath = s!!
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == Activity.RESULT_OK) {
-            if (requestCode == REQUEST_CAMERA || requestCode == SELECT_FILE) {
-                if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.N) {
-                    if (resultCode == Activity.RESULT_OK) {
-                        if (requestCode == SELECT_FILE) {
-                            if (data != null) {
-                                onSelectFromGalleryResult(data)
-                            }
-                        } else if (requestCode == REQUEST_CAMERA) {
-                            if (data != null) {
-                                onCaptureImageResult(data)
-                            }
-                        }
-                    }
-                } else {
-                    if (requestCode == REQUEST_CAMERA) {
-                        val imagePath = Utils.imageFilePath
-                        //selectedImagePath = imagePath!!
 
-                        val bmOptions = BitmapFactory.Options()
-                        bmOptions.inJustDecodeBounds = true
-                        BitmapFactory.decodeFile(imagePath, bmOptions)
-                        val photoW = bmOptions.outWidth
-                        val photoH = bmOptions.outHeight
-
-                        // Determine how much to scale down the image
-                        val scaleFactor = Math.min(photoW / 100, photoH / 100)
-
-                        // Decode the image file into a Bitmap sized to fill the View
-                        bmOptions.inJustDecodeBounds = false
-                        bmOptions.inSampleSize = scaleFactor
-                        bmOptions.inPurgeable = true
-
-                        val bitmap = BitmapFactory.decodeFile(imagePath, bmOptions)
-
-                        try {
-                            selectedImagePath = Utils.saveImage(bitmap, context)!!
-                        } catch (e: java.lang.Exception) {
-                            e.printStackTrace()
-                        }
-                    } else if (requestCode == SELECT_FILE) {
-                        if (data != null) {
-                            val contentURI: Uri = data.data!!
-                            try {
-//                                val bitmap = MediaStore.Images.Media.getBitmap(contentResolver, contentURI)
-//                                val path: String  = Utils.getRealPathFromURI(contentURI, this)!!
-
-                                val bitmap = MediaStore.Images.Media.getBitmap(
-                                    contentResolver,
-                                    contentURI
-                                )
-                                val path: String = Utils.getPath(context, contentURI)!!
-                                selectedImagePath = Utils.saveImage(bitmap, context)!!
-                                //selectedImagePath = path
-
-                            } catch (e: IOException) {
-                                e.printStackTrace()
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
 
     private fun compressImage(image: Bitmap): Bitmap? {
         val baos = ByteArrayOutputStream()
@@ -960,6 +1000,7 @@ class AddContact : AppCompatActivity(), LoaderManager.LoaderCallbacks<ArrayList<
             e.printStackTrace()
         }
     }
+
 
     // CREATE DYNAMIC LINK
     fun createDynamicLink(txnType : Int, notifyType : Int){
