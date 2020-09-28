@@ -1,14 +1,13 @@
 package com.dev.credbizz.extras
-
 import android.content.Context
 import android.content.SharedPreferences
 import com.dev.credbizz.dbHelper.Constants
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-class SessionManager(// Context
-    _context: Context
-) {
+
+class SessionManager(_context: Context) {
+
     // Shared Preferences
     var pref: SharedPreferences
 
@@ -124,7 +123,7 @@ class SessionManager(// Context
         }
 
     var isUserFirstTime : Boolean?
-        get() = pref.getBoolean(IS_USER_FIRST_TIME, false)
+        get() = pref.getBoolean(IS_USER_FIRST_TIME, true)
         set(isUserFirstTime) {
             editor.putBoolean(IS_USER_FIRST_TIME, isUserFirstTime!!)
             editor.commit()

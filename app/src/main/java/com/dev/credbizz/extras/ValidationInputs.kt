@@ -64,10 +64,12 @@ object ValidationInputs {
 
     //*********** Validate Number Input ********//
     fun isValidNumber(number: String): Boolean {
+        if(number.length!=10){
+            return false
+        }
         val regExpn = "^[0-9]{6,10}$"
         val inputStr: CharSequence = number
-        val pattern =
-            Pattern.compile(regExpn, Pattern.CASE_INSENSITIVE)
+        val pattern = Pattern.compile(regExpn, Pattern.CASE_INSENSITIVE)
         val matcher = pattern.matcher(inputStr)
         return matcher.matches()
     }

@@ -50,13 +50,13 @@ class Splash : AppCompatActivity() {
                     deepLink = pendingDynamicLinkData.link
                 }
             }
-            .addOnFailureListener(
-                this
-            ) { e -> Log.w("", "getDynamicLink:onFailure", e) }
+            .addOnFailureListener(this) {
+                    e -> Log.w("", "getDynamicLink:onFailure", e)
+            }
 
 
         Handler(Looper.myLooper()!!).postDelayed(Runnable {
-            if (sessionManager.isUserFirstTime!!) {
+            if (sessionManager.isUserFirstTime==false) {
                 if (Utils.isNetworkAvailable(this)){
                     val mobileVerify = Intent(context, Dashboard::class.java)
                     mobileVerify.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -77,6 +77,4 @@ class Splash : AppCompatActivity() {
         }, 1000)
 
     }
-
-
 }

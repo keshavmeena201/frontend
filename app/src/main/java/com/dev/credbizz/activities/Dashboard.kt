@@ -4,6 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.DatePickerDialog
+import android.content.ActivityNotFoundException
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,10 +13,7 @@ import android.database.Cursor
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
-import android.os.Build
-import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.*
 import android.provider.ContactsContract
 import android.provider.MediaStore
 import android.text.Editable
@@ -22,9 +21,7 @@ import android.text.InputType
 import android.text.TextWatcher
 import android.text.method.KeyListener
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.Window
+import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -44,14 +41,15 @@ import com.google.firebase.dynamiclinks.DynamicLink
 import com.google.firebase.dynamiclinks.FirebaseDynamicLinks
 import com.google.gson.Gson
 import com.google.gson.JsonObject
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel
 import kotlinx.android.synthetic.main.activity_dashboard.*
+import kotlinx.android.synthetic.main.activity_my_qr_code.*
+import kotlinx.android.synthetic.main.activity_my_qr_code.view.*
 import kotlinx.android.synthetic.main.notify_popup.*
 import retrofit2.Call
 import retrofit2.Response
 import retrofit2.Retrofit
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.IOException
+import java.io.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.collections.ArrayList
@@ -59,13 +57,13 @@ import kotlin.collections.ArrayList
 
 class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSelectListener{
 
-
     private var selectedDob: String = ""
     var selectedImagePath : String = ""
     var serverDateString : String = ""
     var selectedContact : String = ""
     var selectedNumber : String = ""
     var selectedText : String = "You Gave"
+    var isAddPaymentTaking : Boolean = false
 
     // LINEAR LAYOUT
     lateinit var llNotify : LinearLayout
@@ -124,7 +122,6 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
     // BOOLEAN
     var isRefresh : Boolean = false
 
-
     // LOAD TABLES
     lateinit var lt: LoadTables
 
@@ -180,7 +177,9 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         rec_transaction_details.adapter = transactionContactsAdapter
 
 
-        //}
+        qr_code.setOnClickListener {
+            showQRCODE()
+        }
 
         // SHARE CLICK
         tx_refer_friend.setOnClickListener {
@@ -211,11 +210,87 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         }
 
         tx_send_message.setOnClickListener {
-            createDynamicLink(type, 1, paymentType)
+            val cal = Calendar.getInstance()
+            cal.add(Calendar.MONTH, 1)
+            val date = Date(cal.timeInMillis)
+            val dateString: String = SimpleDateFormat("dd MMM yy").format(date)
+            if(isAddPaymentTaking==true){
+                if(type==0){
+                    val shortLink = "https://credbizz.page.link/SiJ8"
+                    val smsIntent = Intent(Intent.ACTION_VIEW)
+                    smsIntent.putExtra("sms_body",
+                        "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +
+                                " has lent you " + Keys.rupeeSymbol + edAmount.text.toString().trim()
+                                +  " please pay back the amount on " + dateString + " and click on this link to know more: " + shortLink
+                    )
+                    smsIntent.data = Uri.parse("sms:"+selectedNumber)
+                    startActivity(smsIntent)
+                }
+                else{
+                    val shortLink = "https://credbizz.page.link/SiJ8"
+                    val smsIntent = Intent(Intent.ACTION_VIEW)
+                    smsIntent.putExtra("sms_body",
+                        "Hey!! You have given " + Keys.rupeeSymbol + edAmount.text.toString().trim()  + " on credit to "
+                                + sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +
+                                " please collect amount on " + dateString + " and click on this link to know more: " + shortLink
+                    )
+                    smsIntent.data = Uri.parse("sms:"+selectedNumber)
+                    startActivity(smsIntent)
+                }
+            }
+            else{
+                createDynamicLink(type, 1, paymentType)
+            }
         }
 
         tx_send_whatsapp.setOnClickListener {
-            createDynamicLink(type, 2, paymentType)
+            if(isAddPaymentTaking==true){
+                val cal = Calendar.getInstance()
+                cal.add(Calendar.MONTH, 1)
+                val date = Date(cal.timeInMillis)
+                val dateString: String = SimpleDateFormat("dd MMM yy").format(date)
+
+                var contact =  "" // use country code with your phone number
+                var contactNum = selectedNumber.toString().trim()
+                if (contactNum.startsWith("+91")){
+                    contact = contactNum
+                } else if (contactNum.length == 10) {
+                    contact = "+91" + contactNum
+                }
+                var message = ""
+                if(type==0){
+                    val shortLink = "https://credbizz.page.link/SiJ8"
+                    message = "Hey!! "+ sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +
+                            " has lent you " + Keys.rupeeSymbol + edAmount.text.toString().trim() +
+                            " please pay back the amount on " +dateString + " and click on this link to know more: " + shortLink
+                }
+                else{
+                    val shortLink = "https://credbizz.page.link/SiJ8"
+                    message = "Hey!! You have given " + Keys.rupeeSymbol + edAmount.text.toString().trim()  + " on credit to " +
+                            sessionManager.orgName + "(" + sessionManager.mobileNumber + ")" +
+                            " please collect amount on " +dateString + " and click on this link to know more: " + shortLink
+                }
+                val url = "https://api.whatsapp.com/send?phone=$contact&text=$message"
+                Log.i("url",url)
+                try {
+                    val pm = context.packageManager
+                    pm.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES)
+                    val i = Intent(Intent.ACTION_VIEW)
+                    i.data = Uri.parse(url)
+                    startActivity(i)
+                } catch (e: PackageManager.NameNotFoundException) {
+                    Toast.makeText(
+                        context,
+                        "Whatsapp app not installed in your phone",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    e.printStackTrace()
+                }
+                ll_notify_popup.visibility = View.GONE
+            }
+            else{
+                createDynamicLink(type, 2, paymentType)
+            }
         }
 
         btn_refresh.setOnClickListener {
@@ -245,24 +320,80 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         }
     }
 
+    fun showQRCODE(){
+        val dialog = AlertDialog.Builder(context)
+        val dialogView: View = LayoutInflater.from(context).inflate(
+            R.layout.activity_my_qr_code,
+            null
+        )
+        dialog.setView(dialogView)
+        dialog.setCancelable(true)
+
+        val imageView = dialogView.findViewById(R.id.QRimageView) as ImageView
+        val bitmap = QRCodeHelper
+            .newInstance(this)
+            .setContent(sessionManager.mobileNumber.toString() + sessionManager.orgName.toString())
+            .setErrorCorrectionLevel(ErrorCorrectionLevel.Q)
+            .setMargin(2)
+            .qrcOde
+
+        imageView.setImageBitmap(bitmap)
+
+        dialogView.shareOnWhatsapp.setOnClickListener {
+            if(ActivityCompat.checkSelfPermission(this ,android.Manifest.permission.READ_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this ,android.Manifest.permission.WRITE_EXTERNAL_STORAGE)!=PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this, arrayOf(android.Manifest.permission.READ_EXTERNAL_STORAGE,android.Manifest.permission.WRITE_EXTERNAL_STORAGE),123456)
+            }
+            else{
+                shareQR(imageView)
+            }
+        }
+
+        val alertDialog = dialog.create()
+        alertDialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        alertDialog.window!!.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        alertDialog.window!!.attributes.windowAnimations = R.style.SlidingDialogAnimation
+        alertDialog.show()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        menuInflater.inflate(R.menu.dashboard_menu,menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.qrCode->{
+                startActivity(Intent(this,myQrCode::class.java))
+            }
+        }
+        return super.onOptionsItemSelected(item)
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         //val permissionLocation = ContextCompat.checkSelfPermission(requireActivity(), Manifest.permission.ACCESS_FINE_LOCATION)
-        if (grantResults.isNotEmpty()) {
-            if (requestCode == 1) {
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    showContactIntent()
-                }
-                else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                    Toast.makeText(context, resources.getString(R.string.denied_permission), Toast.LENGTH_SHORT).show()
+        if(requestCode==123456){
+            if(grantResults[0]!=PackageManager.PERMISSION_GRANTED ||  grantResults[1]!=PackageManager.PERMISSION_GRANTED){
+                Toast.makeText(context,resources.getString(R.string.denied_permission),Toast.LENGTH_SHORT).show()
+            }
+        }
+        else{
+            if (grantResults.isNotEmpty()) {
+                if (requestCode == 1) {
+                    if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                        showContactIntent()
+                    }
+                    else if (grantResults[0] == PackageManager.PERMISSION_DENIED) {
+                        Toast.makeText(context, resources.getString(R.string.denied_permission), Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
     }
 
     fun showContactIntent(){
-        val intent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
-        startActivityForResult(intent, 1);
+        startActivityForResult(Intent(this,addPayment::class.java),1)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -330,42 +461,17 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                 }
             }
             else if(requestCode==1){
-                val uri = data!!.data
-                val cursor1: Cursor?
-                val cursor2: Cursor?
-                val TempNameHolder: String
-                var TempNumberHolder: String
-                val TempContactID: String
-                var IDresult = ""
-                val IDresultHolder: Int
-
-                cursor1 = contentResolver.query(uri!!, null, null, null, null)
-
-                if (cursor1!!.moveToFirst()) {
-                    TempNameHolder = cursor1.getString(cursor1.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME))
-                    TempContactID = cursor1.getString(cursor1.getColumnIndex(ContactsContract.Contacts._ID))
-                    IDresult = cursor1.getString(cursor1.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER))
-                    IDresultHolder = Integer.valueOf(IDresult)
-                    if (IDresultHolder == 1) {
-                        cursor2 = contentResolver.query(
-                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                            null,
-                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = " + TempContactID,
-                            null,
-                            null
-                        )
-                        if (cursor2!!.moveToNext()) {
-                            TempNumberHolder = cursor2.getString(cursor2.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER))
-                            Log.i("tag name", TempNameHolder)
-                            Log.i("tag number",TempNumberHolder)
-                            showAlertCustomForAddPayment(this,TempNameHolder,TempNumberHolder)
-                        }
-                    }
+                if(data!=null){
+                    val name = data!!.getStringExtra("name")
+                    val number = data!!.getStringExtra("number")
+                    showAlertCustomForAddPayment(this,name!!,number!!)
+                }
+                else{
+                    Toast.makeText(this,"Error!",Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
-
 
     // SHOW PAYMENT POPUP
     @SuppressLint("SetTextI18n")
@@ -519,6 +625,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
         alertDialog.show()
     }
+
     // SHOW DATE PICKER DIALOG
     fun showDatePickerDialogForAddPayment() {
         try {
@@ -614,6 +721,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                                 Handler(Looper.myLooper()!!).postDelayed(Runnable {
                                     Log.i("Dismiss","Dismiss")
                                     alertDialog.dismiss()
+                                    isAddPaymentTaking = true
                                     ll_notify_popup.visibility = View.VISIBLE
                                     btn.isEnabled = true
                                 }, 1000)
@@ -668,7 +776,6 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
     }
 
-
     override fun onResume() {
         super.onResume()
         if (sessionManager.orgName != ""){
@@ -687,6 +794,34 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
 
         circular_progress.progress // returns 5000
         circular_progress.maxProgress // returns 10000
+    }
+
+    private fun getAmountInCommas(v :Int) : String{
+        var value = v
+        var ans = ""
+        var temp = (value%10).toString()
+        value = value/10
+        if(value!=0){
+            temp = ('0' + value%10).toString() + temp
+        }
+        value = value/10
+        if(value!=0){
+            temp = ('0' + value%10).toString() + temp
+        }
+        value = value/10
+        ans = ans + temp
+        temp = ""
+        while(value!=0){
+            ans = "," + ans
+            temp = (value%10).toString()
+            value = value/10
+            if(value!=0){
+                temp = (value%10).toString() + temp
+            }
+            value = value/10
+            ans = temp + ans
+        }
+        return ans
     }
 
     private fun getProfileScore(mobileNum : String){
@@ -720,9 +855,12 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                                 val constant = Constants()
                                 constant.setamountToGive(result.amountToGive.toInt())
                                 constant.setamountToPay(result.amountToPay.toInt())
-                                tx_get_txn.text = result.amountToPay.toString()
-                                tx_give_txn.text = result.amountToGive.toString()
 
+                                Log.i("amount to givw",result.amountToGive.toString())
+                                Log.i("amount to pay",result.amountToPay.toString())
+
+                                tx_get_txn.text = Keys.rupeeSymbol + getAmountInCommas(result.amountToPay.toInt())
+                                tx_give_txn.text = Keys.rupeeSymbol + getAmountInCommas(result.amountToGive.toInt())
 
                             } else {
                                 try {
@@ -811,16 +949,6 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                                 Log.e("transactione", transactionList1.get(0).fromMobileNumber)
                                 transactionContactsAdapter = TransactionContactsAdapter(context, transactionList1, onContactSelectListener)
                                 rec_transaction_details.adapter = transactionContactsAdapter
-
-                                //lol=transactionList1
-
-//                                Handler(Looper.myLooper()!!).postDelayed({
-//                                    val intent =
-//                                        Intent(this@MobileVerify, CreateOrganization::class.java)
-//                                    startActivity(intent)
-//                                    finish()
-//                                }, 1000)
-
                             } else {
                                 try {
                                     val responseError = response.errorBody()?.string()
@@ -920,6 +1048,10 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
         } else {
             showAlertCustom(context, transactionList1[pos], transactionList1[pos].fromMobileNumber, transactionList1[pos].fromName,  1)
         }
+    }
+
+    override fun onSettleUpApproved(position: Int) {
+
 
     }
 
@@ -1104,7 +1236,7 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                                 getProfileScore(sessionManager.mobileNumber!!)
                                 getTransactions(sessionManager.mobileNumber!!, this@Dashboard)
                                 llTxnSettled.visibility = View.VISIBLE
-
+                                isAddPaymentTaking = false
                                 tx_notify_user.text = resources.getString(R.string.notify_label) + " " + selectedContact + "?"
                                 Handler(Looper.myLooper()!!).postDelayed(Runnable {
                                     alertDialog.dismiss()
@@ -1202,7 +1334,6 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
             e.printStackTrace()
         }
     }
-
 
     // ATTACH BILLS DIALOG
     fun attachBills(){
@@ -1473,5 +1604,85 @@ class Dashboard : AppCompatActivity() ,  TransactionContactsAdapter.OnSettleUpSe
                 Log.d("AAA", "test1 fail")
                 it.printStackTrace()
             }
+    }
+
+    fun shareQR(imageView: ImageView){
+        val bitmap = loadBitmapFromView(imageView)
+        val  imageSavedUri = saveImage(bitmap!!,this)
+        shareQRonWhatsapp(imageSavedUri)
+    }
+    fun shareQRonWhatsapp(uri: Uri?){
+        val whatsappIntent = Intent(Intent.ACTION_SEND)
+        whatsappIntent.type = "text/plain"
+        whatsappIntent.setPackage("com.whatsapp")
+        whatsappIntent.putExtra(Intent.EXTRA_STREAM, uri)
+        whatsappIntent.type = "image/jpeg"
+        whatsappIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+        try {
+            context.startActivity(whatsappIntent)
+        } catch (ex: ActivityNotFoundException) {
+            Toast.makeText(context,"Whatsapp have not been installed",Toast.LENGTH_SHORT).show()
+        }
+    }
+    fun loadBitmapFromView(v: View): Bitmap? {
+        val b = Bitmap.createBitmap(v.getWidth(), v.getHeight(), Bitmap.Config.ARGB_8888)
+        val c = Canvas(b)
+        v.draw(c)
+        return b
+    }
+    private fun saveImage(bitmap: Bitmap, context: Context) : Uri? {
+        if (android.os.Build.VERSION.SDK_INT >= 29) {
+            val values = contentValues()
+            values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/" + "WhiteWizard")
+            values.put(MediaStore.Images.Media.IS_PENDING, true)
+
+            // RELATIVE_PATH and IS_PENDING are introduced in API 29.
+            val uri: Uri? = context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+            if (uri != null) {
+                saveImageToStream(bitmap, context.contentResolver.openOutputStream(uri))
+                values.put(MediaStore.Images.Media.IS_PENDING, false)
+                context.contentResolver.update(uri, values, null, null)
+            }
+            else{
+                Toast.makeText(this,"Error in saving image",Toast.LENGTH_SHORT).show()
+            }
+            return uri
+        } else {
+            val directory = File(Environment.getExternalStorageDirectory().toString() + "/" + "Credbizz")
+            if (!directory.exists()) {
+                directory.mkdirs()
+            }
+            val fileName = System.currentTimeMillis().toString() + ".png"
+            val file = File(directory, fileName)
+            saveImageToStream(bitmap, FileOutputStream(file))
+            if (file.absolutePath != null) {
+                val values = contentValues()
+                values.put(MediaStore.Images.Media.DATA, file.absolutePath)
+                // .DATA is deprecated in API 29
+                context.contentResolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+            }
+            else{
+                Toast.makeText(this,"Error in saving image",Toast.LENGTH_SHORT).show()
+            }
+            return Uri.fromFile(file)
+        }
+    }
+    private fun contentValues() : ContentValues {
+        val values = ContentValues()
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis() / 1000);
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        return values
+    }
+    private fun saveImageToStream(bitmap: Bitmap, outputStream: OutputStream?) {
+        if (outputStream != null) {
+            try {
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+                outputStream.close()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }

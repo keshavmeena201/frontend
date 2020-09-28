@@ -21,6 +21,8 @@ class TransactionModel {
     var previousTransactionId : String = ""
     var fromName : String = ""
     var toName : String = ""
+    var flag : Boolean = false
+
 
     constructor()
 

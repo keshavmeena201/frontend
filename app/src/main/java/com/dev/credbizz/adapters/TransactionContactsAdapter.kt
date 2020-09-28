@@ -207,11 +207,15 @@ class TransactionContactsAdapter(
 
 
             }
-
-            if (contactsModels[position].settled){
+            if (contactsModels[position].settled && contactsModels[position].flag==true){
                 contactssViewHolder.btnSettleUp.setBackgroundResource(R.drawable.green_btn_bg)
                 contactssViewHolder.btnSettleUp.setText(context.resources.getString(R.string.settled))
-            } else {
+            }
+            else if(contactsModels[position].settled && contactsModels[position].flag==false){
+                contactssViewHolder.btnSettleUp.setBackgroundResource(R.drawable.red_btn_bg)
+                contactssViewHolder.btnSettleUp.setText(context.resources.getString(R.string.pending))
+            }
+            else {
                 contactssViewHolder.btnSettleUp.setText(context.resources.getString(R.string.settle_up))
                 contactssViewHolder.btnSettleUp.setBackgroundResource(R.drawable.blue_btn_bg)
             }
@@ -237,8 +241,8 @@ class TransactionContactsAdapter(
         var ivAction : ImageView = itemView.findViewById(R.id.iv_action)
 
     }
-
     interface OnSettleUpSelectListener {
         fun onSettleUpSelect(pos: Int)
+        fun onSettleUpApproved(position: Int)
     }
 }

@@ -73,6 +73,7 @@
     <string name="larger_txn">Larger the transaction amount more the impact on score</string>
     <string name="keep_clean">Keep your past records clean</string>
     <string name="settled">Settled</string>
+    <string name="pending">Pending</string>
     <string name="settled_txn">You settled this transaction!</string>
     <string name="txn_setlled">Transaction settled!</string>
     <string name="by_continue">By continuing, you agree to our</string>
