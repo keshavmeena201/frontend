@@ -207,18 +207,15 @@ class TransactionContactsAdapter(
 
 
             }
-            if (contactsModels[position].settled && contactsModels[position].flag==true){
+            if (contactsModels[position].settled){
                 contactssViewHolder.btnSettleUp.setBackgroundResource(R.drawable.green_btn_bg)
                 contactssViewHolder.btnSettleUp.setText(context.resources.getString(R.string.settled))
-            }
-            else if(contactsModels[position].settled && contactsModels[position].flag==false){
-                contactssViewHolder.btnSettleUp.setBackgroundResource(R.drawable.red_btn_bg)
-                contactssViewHolder.btnSettleUp.setText(context.resources.getString(R.string.pending))
             }
             else {
                 contactssViewHolder.btnSettleUp.setText(context.resources.getString(R.string.settle_up))
                 contactssViewHolder.btnSettleUp.setBackgroundResource(R.drawable.blue_btn_bg)
             }
+
 
             contactssViewHolder.btnSettleUp.setOnClickListener {
                 if (!contactsModels[position].settled) {
